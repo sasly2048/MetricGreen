@@ -18,7 +18,7 @@ MetricGreen is a blockchain-based platform designed to eliminate greenwashing an
 Our architecture digitizes and secures the lifecycle of a carbon credit end-to-end:
 
 1. **Security Setup (Reputation Bond)**
-   Producers deposit a stablecoin bond (USDC/DAI) into a smart contract escrow. This acts as strict financial collateral against fraudulent reporting.
+   Producers deposit into a smart contract escrow. This acts as strict financial collateral against fraudulent reporting.
 
 2. **Data Ingestion & ZK-Verification**
    Production metrics are routed via IoT sensors and Chainlink Functions. Producers generate a local **Zero-Knowledge Proof** to mathematically confirm compliance with environmental thresholds without uploading any raw proprietary data.
