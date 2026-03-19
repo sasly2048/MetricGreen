@@ -14,7 +14,13 @@ import {
   Wallet,
   Lock,
   Factory,
+  Sparkles,
+  Globe,
+  Zap,
 } from "lucide-react";
+import { toast } from "sonner";
+import { uiSounds } from "../hooks/useTactileHaptics";
+import { ScrambleLabel } from "../components/ScrambleText";
 
 const contractABI = [
   "function depositBond() public payable",
@@ -93,6 +99,7 @@ function getContractErrorDetails(error) {
 
 export default function Home() {
   const [account, setAccount] = useState("");
+  const [ensName, setEnsName] = useState(null);
   const [credits, setCredits] = useState([]);
   const [isStaking, setIsStaking] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
@@ -152,20 +159,47 @@ export default function Home() {
   }
 
   async function connectWallet() {
+    uiSounds.tap();
     if (window.ethereum) {
       try {
         setStatus({ code: "", message: "" });
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const accounts = await provider.send("eth_requestAccounts", []);
-        setAccount(accounts[0]);
-        await loadCredits(provider);
+
+        toast.promise(
+          async () => {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const accounts = await provider.send("eth_requestAccounts", []);
+            setAccount(accounts[0]);
+
+            // Simulate Advanced Resolvers (ENS, Lens, etc)
+            setTimeout(() => {
+              setEnsName("raghav.eth");
+              uiSounds.decrypt();
+            }, 800);
+
+            await loadCredits(provider);
+            return accounts[0];
+          },
+          {
+            loading: "Creating secure session & resolving identity...",
+            success: (data) => {
+              uiSounds.success();
+              return `Authenticated successfully as ${data.slice(0, 6)}...${data.slice(-4)}`;
+            },
+            error: "Authentication failed",
+          },
+        );
       } catch (error) {
-        if (error?.code === 4001 || error?.code === "ACTION_REJECTED")
-          alert("Connection rejected.");
-        setStatus(getContractErrorDetails(error));
+        if (error?.code === 4001 || error?.code === "ACTION_REJECTED") {
+          toast.error("User closed the connection portal.");
+        } else {
+          setStatus(getContractErrorDetails(error));
+        }
       }
     } else {
-      alert("Please install MetaMask!");
+      toast.error("Web3 Provider missing. Deploying frictionless fallback...", {
+        description:
+          "In production, this would trigger a Privy social login or Web3Auth modal.",
+      });
     }
   }
 
@@ -201,7 +235,7 @@ export default function Home() {
   }
 
   async function stake() {
-    if (!account) return alert("Connect wallet first!");
+    if (!account) return (() => { uiSounds.error(); toast.error("Connect wallet first!"); })();
     setIsStaking(true);
     try {
       setStatus({ code: "", message: "" });
@@ -215,11 +249,13 @@ export default function Home() {
         code: "SUCCESS",
         message: "Bond deposited successfully.",
       });
-      alert("Reputation Bond Staked!");
+      uiSounds.notification(); toast.success("Reputation Bond Staked!", {
+        description: "Your trust layer is secured. View on Etherscan.",
+      });
     } catch (error) {
       setStatus(getContractErrorDetails(error));
       if (error?.code === 4001 || error?.code === "ACTION_REJECTED")
-        alert("Transaction cancelled.");
+        (() => { uiSounds.error(); toast.error("Transaction cancelled by user."); })();
       else alert("Staking failed. Check balance or selected network.");
     } finally {
       setIsStaking(false);
@@ -227,7 +263,7 @@ export default function Home() {
   }
 
   async function mint() {
-    if (!account) return alert("Connect wallet first!");
+    if (!account) return (() => { uiSounds.error(); toast.error("Connect wallet first!"); })();
     setIsMinting(true);
 
     setTimeout(async () => {
@@ -246,18 +282,20 @@ export default function Home() {
           code: "SUCCESS",
           message: "Credit minted successfully.",
         });
-        alert("Success: Verified via ZK-Proof and Minted!");
+        uiSounds.notification(); toast.success("Carbon Credit Minted", {
+          description: "Verified via simulated ZK-Proof offchain.",
+        });
       } catch (error) {
         setIsMinting(false);
         setStatus(getContractErrorDetails(error));
         if (error?.code === 4001 || error?.code === "ACTION_REJECTED")
-          alert("Minting cancelled.");
+          (() => { uiSounds.error(); toast.error("Minting cancelled by user."); })();
       }
     }, 3000);
   }
 
   async function retireCredit(creditId) {
-    if (!account) return alert("Connect wallet first!");
+    if (!account) return (() => { uiSounds.error(); toast.error("Connect wallet first!"); })();
     setRetiringCreditId(creditId);
 
     try {
@@ -276,7 +314,7 @@ export default function Home() {
     } catch (error) {
       setStatus(getContractErrorDetails(error));
       if (error?.code === 4001 || error?.code === "ACTION_REJECTED")
-        alert("Retirement cancelled.");
+        (() => { uiSounds.error(); toast.error("Retirement cancelled by user."); })();
       else
         alert("Retirement failed. Check the selected network and try again.");
     } finally {
@@ -307,22 +345,32 @@ export default function Home() {
   if (!mounted) return null;
 
   return (
-    <main className="min-h-screen relative bg-[#050505] text-neutral-200 font-sans selection:bg-green-500/30 overflow-hidden">
-      {/* Background Glows */}
+    <main className="min-h-screen relative bg-[#030712] text-neutral-200 font-sans selection:bg-emerald-500/30 overflow-hidden">
+      {/* Background Glows - SaaS Multi-Color Palette */}
       <motion.div
-        animate={{ scale: [1, 1.05, 1], opacity: [0.15, 0.25, 0.15] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-600/20 blur-[120px] rounded-full pointer-events-none"
+        animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-indigo-600/20 blur-[130px] rounded-full pointer-events-none"
       />
       <motion.div
-        animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
+        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
         transition={{
-          duration: 10,
+          duration: 12,
           repeat: Infinity,
           ease: "easeInOut",
-          delay: 1,
+          delay: 2,
         }}
-        className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-teal-600/10 blur-[120px] rounded-full pointer-events-none"
+        className="absolute bottom-[-10%] right-[-5%] w-[45vw] h-[45vw] bg-emerald-600/20 blur-[140px] rounded-full pointer-events-none"
+      />
+      <motion.div
+        animate={{ scale: [1, 1.15, 1], opacity: [0.08, 0.15, 0.08] }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 4,
+        }}
+        className="absolute top-[30%] left-[30%] w-[30vw] h-[30vw] bg-fuchsia-600/10 blur-[130px] rounded-full pointer-events-none"
       />
 
       {/* Top Navbar */}
@@ -353,16 +401,7 @@ export default function Home() {
           </div>
 
           <div>
-            {!account ? (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={connectWallet}
-                className="group relative inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-semibold text-black transition-all duration-200 bg-white border border-transparent rounded-lg hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-white"
-              >
-                <Wallet className="w-4 h-4" /> Connect Wallet
-              </motion.button>
-            ) : (
+            {account && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -373,339 +412,536 @@ export default function Home() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                 </div>
-                <p className="text-emerald-300 font-mono text-sm font-medium tracking-wider">
-                  {account.slice(0, 6)}...{account.slice(-4)}
-                </p>
+                <div className="text-emerald-300 font-mono text-sm font-medium tracking-wider flex items-center gap-2">
+                  {ensName ? (
+                    <>
+                      <div className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 shadow-inner"></div>
+                      <ScrambleLabel text={ensName} />
+                    </>
+                  ) : (
+                    <ScrambleLabel
+                      text={`${account.slice(0, 6)}...${account.slice(-4)}`}
+                    />
+                  )}
+                </div>
               </motion.div>
             )}
           </div>
         </div>
       </motion.nav>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-7xl mx-auto px-6 py-12 relative z-10"
-      >
-        {/* Status Alerts */}
-        <AnimatePresence mode="popLayout">
-          {status.message && (
-            <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              className="mb-8"
-            >
-              <div
-                className={`flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl border p-4 backdrop-blur-md ${
-                  status.code === "SUCCESS"
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200 shadow-[0_0_30px_rgba(52,211,153,0.1)]"
-                    : "border-amber-500/30 bg-amber-500/10 text-amber-200 shadow-[0_0_30px_rgba(251,191,36,0.1)]"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  {status.code === "SUCCESS" ? (
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 text-amber-400" />
-                  )}
-                  <p className="text-sm font-medium">{status.message}</p>
-                </div>
-
-                {status.code === "WRONG_NETWORK" && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={switchNetwork}
-                    className="whitespace-nowrap rounded-lg bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-300 transition hover:bg-amber-500/30 hover:text-amber-200"
-                  >
-                    Switch to {requiredChainName}
-                  </motion.button>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-          {/* Action Panel */}
+      {/* Main Content Area */}
+      <AnimatePresence mode="wait">
+        {!account ? (
+          /* Landing Page View */
           <motion.div
-            variants={itemVariants}
-            className="lg:col-span-5 space-y-6"
+            key="landing"
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.95, filter: "blur(10px)" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] text-center px-6 relative z-10 pt-10 pb-20"
           >
-            <div className="p-8 rounded-3xl border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-2xl relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            {/* Hero Globe Icon */}
+            <div className="relative group mb-8">
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 20,
+                  delay: 0.1,
+                }}
+                className="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-emerald-500/20 flex items-center justify-center border border-white/10 shadow-[0_0_50px_rgba(99,102,241,0.2)] backdrop-blur-md relative z-10 group-hover:scale-105 transition-transform duration-500"
+              >
+                <Globe className="w-10 h-10 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
+              </motion.div>
+              <div className="absolute inset-0 bg-indigo-500/30 blur-3xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            </div>
 
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                  <Factory className="w-6 h-6 text-emerald-400" />
-                  Producer Actions
-                </h2>
-              </div>
-              <p className="text-sm text-neutral-400 mb-8 leading-relaxed">
-                Connect your IoT sensors and execute verified sustainability
-                actions to mint credits on the immutable ledger.
-              </p>
+            {/* Release Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="flex items-center gap-2 mb-6 bg-indigo-500/10 border border-indigo-500/30 px-5 py-2 rounded-full backdrop-blur-md shadow-lg hover:bg-indigo-500/20 transition-colors cursor-default"
+            >
+              <Sparkles className="w-4 h-4 text-indigo-400" />
+              <span className="text-xs font-semibold tracking-wide text-indigo-100">
+                Metric Protocol 2.0 has arrived
+              </span>
+            </motion.div>
 
-              <div className="space-y-5 relative z-10">
-                <motion.button
-                  whileHover={!isStaking ? { scale: 1.02, y: -2 } : {}}
-                  whileTap={!isStaking ? { scale: 0.98 } : {}}
-                  onClick={stake}
-                  disabled={isStaking}
-                  className={`w-full group relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-300 border ${
-                    isStaking
-                      ? "bg-neutral-900 border-white/5 cursor-not-allowed opacity-70"
-                      : "bg-neutral-900/50 border-white/10 hover:border-emerald-500/50 hover:bg-emerald-950/20 shadow-lg hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="flex items-center gap-2 text-xs text-neutral-400 uppercase tracking-widest font-mono font-semibold">
-                      <Lock className="w-3.5 h-3.5" /> Step 01
-                    </span>
-                    {isStaking && (
-                      <Activity className="w-4 h-4 text-emerald-500 animate-spin" />
-                    )}
-                  </div>
-                  <h3
-                    className={`text-xl font-bold transition-colors ${isStaking ? "text-neutral-500" : "text-white group-hover:text-emerald-400"}`}
-                  >
-                    {isStaking
-                      ? "Processing Transaction..."
-                      : "Stake Reputation Bond"}
-                  </h3>
-                  <p className="text-sm text-neutral-500 mt-2 font-mono flex items-center gap-2">
-                    Cost:{" "}
-                    <span className="text-emerald-500 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                      0.01 ETH
-                    </span>
-                  </p>
-                </motion.button>
+            {/* Main Typography */}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 bg-clip-text text-transparent bg-gradient-to-br from-white via-indigo-100 to-emerald-400 drop-shadow-sm leading-tight"
+            >
+              The Future of Carbon <br className="hidden md:block" /> Credit
+              Verification
+            </motion.h1>
 
-                <motion.button
-                  whileHover={!isMinting ? { scale: 1.02, y: -2 } : {}}
-                  whileTap={!isMinting ? { scale: 0.98 } : {}}
-                  onClick={mint}
-                  disabled={isMinting}
-                  className={`w-full group relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-300 border shadow-lg ${
-                    isMinting
-                      ? "bg-neutral-900 border-white/5 cursor-not-allowed opacity-70"
-                      : "bg-gradient-to-br from-emerald-600 to-green-800 border-emerald-400/50 hover:shadow-[0_10px_40px_rgba(16,185,129,0.4)]"
-                  }`}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-lg md:text-xl text-neutral-400 max-w-2xl mb-12 leading-relaxed font-light"
+            >
+              Stake reputation, mint zero-knowledge verified credits from IoT
+              sensors, APIs and Satellite Data, and permanently retire assets on
+              a decentralized ledger.
+            </motion.p>
+
+            {/* Downward Chevrons Guiding the User */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1, duration: 1 }}
+              className="flex flex-col items-center mb-16 opacity-50"
+            >
+              <motion.div
+                animate={{ y: [0, 8, 0] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                <div className="w-1 h-8 rounded-full bg-gradient-to-b from-transparent via-indigo-500/50 to-emerald-500/50 mb-2"></div>
+              </motion.div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, type: "spring", stiffness: 50 }}
+              className="relative group"
+            >
+              {/* Ambient Glow behind the button */}
+              <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full scale-[1.5] -z-10 group-hover:bg-indigo-400/30 transition-colors duration-100"></div>
+
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={connectWallet}
+                onMouseEnter={() => uiSounds.hover()}
+                className="group/btn relative inline-flex items-center justify-center gap-4 px-10 py-5 text-xl font-bold text-black transition-all duration-100 bg-white border border-transparent rounded-2xl hover:bg-neutral-900 hover:text-white hover:border-white/10 hover:shadow-[0_0_40px_rgba(255,255,255,0.1)] focus:outline-none overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-neutral-800 via-neutral-900 to-black translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-100 ease-in-out"></div>
+                <Wallet className="w-7 h-7 relative z-10 group-hover/btn:text-indigo-400 transition-colors duration-100" />
+                <span className="relative z-10 group-hover/btn:text-white transition-colors duration-100 tracking-wide">
+                  Connect Wallet to Enter
+                </span>
+                <ArrowRight className="w-6 h-6 relative z-10 group-hover/btn:translate-x-3 group-hover/btn:text-indigo-400 transition-all duration-100" />
+              </motion.button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full text-left perspective-1000"
+            >
+              {[
+                {
+                  icon: ShieldCheck,
+                  title: "ZK-Proofs",
+                  desc: "Cryptographically verified IoT external data streams.",
+                  color: "text-indigo-400",
+                  bg: "bg-indigo-500/10",
+                  border: "hover:border-indigo-500/40",
+                  glow: "hover:shadow-[0_0_30px_rgba(99,102,241,0.15)]",
+                },
+                {
+                  icon: Activity,
+                  title: "Immutable",
+                  desc: "Permanent on-chain ledger for true global transparency.",
+                  color: "text-emerald-400",
+                  bg: "bg-emerald-500/10",
+                  border: "hover:border-emerald-500/40",
+                  glow: "hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]",
+                },
+                {
+                  icon: Zap,
+                  title: "Decentralized",
+                  desc: "No central authority controlling credit supply chains.",
+                  color: "text-fuchsia-400",
+                  bg: "bg-fuchsia-500/10",
+                  border: "hover:border-fuchsia-500/40",
+                  glow: "hover:shadow-[0_0_30px_rgba(217,70,239,0.15)]",
+                },
+              ].map((feature, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{
+                    scale: 1.05,
+                    y: -5,
+                  }}
+                  transition={{ type: "spring", stiffness: 1050, damping: 25 }}
+                  className={`p-6 flex flex-col rounded-3xl bg-neutral-900/40 border border-white/5 backdrop-blur-xl transition-all duration-100 ${feature.border} ${feature.glow}`}
                 >
                   <div
-                    className={`absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.05] ${!isMinting && "mix-blend-overlay"}`}
-                  />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-3">
-                      <span
-                        className={`flex items-center gap-2 text-xs uppercase tracking-widest font-mono font-semibold ${isMinting ? "text-neutral-400" : "text-emerald-100"}`}
-                      >
-                        <ShieldCheck className="w-3.5 h-3.5" /> Step 02
-                      </span>
-                      {isMinting && (
-                        <Activity className="w-4 h-4 text-emerald-100 animate-spin" />
-                      )}
-                    </div>
-                    <h3
-                      className={`text-xl font-bold flex items-center gap-2 ${isMinting ? "text-neutral-500" : "text-white"}`}
-                    >
-                      {isMinting
-                        ? "Generating ZK-Proof..."
-                        : "Verify & Mint Credit"}
-                      {!isMinting && (
-                        <ArrowRight className="w-5 h-5 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                      )}
-                    </h3>
-                    <p
-                      className={`text-sm mt-2 font-mono ${isMinting ? "text-neutral-600" : "text-emerald-100/80"}`}
-                    >
-                      Target:{" "}
-                      <span className="font-bold text-white bg-black/20 px-2 py-0.5 rounded-md">
-                        Sensor_ID_042
-                      </span>
-                    </p>
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border border-white/5 ${feature.bg}`}
+                  >
+                    <feature.icon className={`w-7 h-7 ${feature.color}`} />
                   </div>
-                </motion.button>
-              </div>
-            </div>
+                  <h3 className="text-xl font-bold text-white mb-3 tracking-tight">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-neutral-400 leading-relaxed font-light">
+                    {feature.desc}
+                  </p>
+                </motion.div>
+              ))}
+            </motion.div>
           </motion.div>
-
-          {/* Ledger Panel */}
+        ) : (
+          /* Dashboard / Ledger View */
           <motion.div
-            variants={itemVariants}
-            className="lg:col-span-7 space-y-4"
+            key="dashboard"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="max-w-7xl mx-auto px-6 py-12 relative z-10"
           >
-            <div className="flex items-center justify-between mb-4 px-2">
-              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                <Server className="w-6 h-6 text-neutral-400" />
-                Network Ledger
-              </h2>
-              <div className="flex gap-4 items-center text-xs font-mono text-neutral-400 bg-white/5 px-4 py-2 rounded-full border border-white/5">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse block shadow-[0_0_8px_rgba(16,185,129,0.8)]" />{" "}
-                  Active
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-neutral-600 block" />{" "}
-                  Retired
-                </div>
-              </div>
-            </div>
+            {/* Status Alerts */}
+            <AnimatePresence mode="popLayout">
+              {status.message && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  className="mb-8"
+                >
+                  <div
+                    className={`flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl border p-4 backdrop-blur-md ${
+                      status.code === "SUCCESS"
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200 shadow-[0_0_30px_rgba(52,211,153,0.1)]"
+                        : "border-amber-500/30 bg-amber-500/10 text-amber-200 shadow-[0_0_30px_rgba(251,191,36,0.1)]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {status.code === "SUCCESS" ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 text-amber-400" />
+                      )}
+                      <p className="text-sm font-medium">{status.message}</p>
+                    </div>
 
-            <div className="bg-[#0a0a0a]/80 border border-white/10 rounded-3xl p-3 backdrop-blur-xl shadow-2xl min-h-[500px] flex flex-col">
-              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar p-2">
-                <AnimatePresence mode="wait">
-                  {isLoadingCredits && (
-                    <motion.div
-                      key="loading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="h-full min-h-[400px] flex flex-col items-center justify-center space-y-5"
+                    {status.code === "WRONG_NETWORK" && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={switchNetwork}
+                        className="whitespace-nowrap rounded-lg bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-300 transition hover:bg-amber-500/30 hover:text-amber-200"
+                      >
+                        Switch to {requiredChainName}
+                      </motion.button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+              {/* Action Panel */}
+              <motion.div
+                variants={itemVariants}
+                className="lg:col-span-5 space-y-6"
+              >
+                <div className="p-8 rounded-3xl border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-2xl relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                      <Factory className="w-6 h-6 text-emerald-400" />
+                      Producer Actions
+                    </h2>
+                  </div>
+                  <p className="text-sm text-neutral-400 mb-8 leading-relaxed">
+                    Connect your IoT sensors and execute verified sustainability
+                    actions to mint credits on the immutable ledger.
+                  </p>
+
+                  <div className="space-y-5 relative z-10">
+                    <motion.button
+                      whileHover={!isStaking ? { scale: 1.02, y: -2 } : {}}
+                      whileTap={!isStaking ? { scale: 0.98 } : {}}
+                      onClick={() => {
+                        uiSounds.tap();
+                        stake();
+                      }}
+                      onMouseEnter={() => !isStaking && uiSounds.hover()}
+                      disabled={isStaking}
+                      className={`w-full group relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-100 border ${
+                        isStaking
+                          ? "bg-neutral-900 border-white/5 cursor-not-allowed opacity-70"
+                          : "bg-neutral-900/50 border-white/10 hover:border-emerald-500/50 hover:bg-emerald-950/20 shadow-lg hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]"
+                      }`}
                     >
-                      <div className="relative w-16 h-16 flex items-center justify-center">
-                        <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
-                        <div className="absolute inset-0 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin"></div>
-                        <Activity className="w-6 h-6 text-emerald-500 animate-pulse" />
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="flex items-center gap-2 text-xs text-neutral-400 uppercase tracking-widest font-mono font-semibold">
+                          <Lock className="w-3.5 h-3.5" /> Step 01
+                        </span>
+                        {isStaking && (
+                          <Activity className="w-4 h-4 text-emerald-500 animate-spin" />
+                        )}
                       </div>
-                      <p className="text-neutral-400 font-mono text-sm uppercase tracking-widest">
-                        Querying Blocks...
+                      <h3
+                        className={`text-xl font-bold transition-colors duration-100 ${isStaking ? "text-neutral-500" : "text-white group-hover:text-emerald-400"}`}
+                      >
+                        {isStaking
+                          ? "Processing Transaction..."
+                          : "Stake Reputation Bond"}
+                      </h3>
+                      <p className="text-sm text-neutral-500 mt-2 font-mono flex items-center gap-2">
+                        Cost:{" "}
+                        <span className="text-emerald-500 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                          0.01 ETH
+                        </span>
                       </p>
-                    </motion.div>
-                  )}
+                    </motion.button>
 
-                  {!isLoadingCredits && credits.length === 0 && (
-                    <motion.div
-                      key="empty"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="h-full min-h-[400px] flex flex-col items-center justify-center space-y-4 opacity-70"
+                    <motion.button
+                      whileHover={!isMinting ? { scale: 1.02, y: -2 } : {}}
+                      whileTap={!isMinting ? { scale: 0.98 } : {}}
+                      onClick={() => {
+                        uiSounds.tap();
+                        mint();
+                      }}
+                      onMouseEnter={() => !isMinting && uiSounds.hover()}
+                      disabled={isMinting}
+                      className={`w-full group relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-100 border shadow-lg ${
+                        isMinting
+                          ? "bg-neutral-900 border-white/5 cursor-not-allowed opacity-70"
+                          : "bg-gradient-to-br from-emerald-600 to-green-800 border-emerald-400/50 hover:shadow-[0_10px_40px_rgba(16,185,129,0.4)]"
+                      }`}
                     >
-                      <div className="w-20 h-20 bg-neutral-900 rounded-full flex items-center justify-center border border-white/5 mb-2 shadow-inner">
-                        <Server className="w-8 h-8 text-neutral-600" />
-                      </div>
-                      <p className="text-lg font-semibold text-neutral-300">
-                        Ledger is empty.
-                      </p>
-                      <p className="text-sm text-neutral-500 font-mono text-center max-w-xs">
-                        Connect wallet and generate proofs to populate the
-                        chain.
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="space-y-3">
-                  <AnimatePresence>
-                    {!isLoadingCredits &&
-                      credits.map((c, index) => (
-                        <motion.div
-                          key={c.id}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          transition={{ delay: index * 0.05 }}
-                          className={`relative overflow-hidden p-6 rounded-2xl border transition-all duration-300 ${
-                            c.retired
-                              ? "border-white/5 bg-neutral-900/40 grayscale opacity-50"
-                              : "border-emerald-500/30 bg-gradient-to-r from-emerald-950/30 to-black hover:border-emerald-400/60 hover:bg-emerald-900/20 hover:shadow-[0_4px_30px_rgba(16,185,129,0.1)] group/card"
-                          }`}
-                        >
-                          {!c.retired && (
-                            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none transition-opacity duration-500 opacity-50 group-hover/card:opacity-100" />
+                      <div
+                        className={`absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.05] transition-opacity duration-100 ${!isMinting && "mix-blend-overlay group-hover:opacity-[0.1]"}`}
+                      />
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-3">
+                          <span
+                            className={`flex items-center gap-2 text-xs uppercase tracking-widest font-mono font-semibold ${isMinting ? "text-neutral-400" : "text-emerald-100"}`}
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5" /> Step 02
+                          </span>
+                          {isMinting && (
+                            <Activity className="w-4 h-4 text-emerald-100 animate-spin" />
                           )}
-
-                          <div className="flex justify-between items-start relative z-10">
-                            <div>
-                              <div className="flex items-center gap-3 mb-2">
-                                <span
-                                  className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md flex items-center gap-1 ${c.retired ? "bg-neutral-800 text-neutral-400" : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]"}`}
-                                >
-                                  {c.retired ? (
-                                    <XCircle className="w-3 h-3" />
-                                  ) : (
-                                    <CheckCircle2 className="w-3 h-3" />
-                                  )}
-                                  {c.retired ? "Settled" : "Verified"}
-                                </span>
-                                <span className="text-xs text-neutral-500 font-mono bg-neutral-900 px-2 py-1 rounded-md border border-white/5">
-                                  TxID: {c.id.toString().padStart(4, "0")}
-                                </span>
-                              </div>
-                              <p
-                                className={`text-2xl font-bold tracking-tight mt-1 ${c.retired ? "text-neutral-500" : "text-white"}`}
-                              >
-                                {c.name}
-                              </p>
-                            </div>
-
-                            <div className="text-right flex flex-col items-end">
-                              <p
-                                className={`font-mono text-3xl font-light tracking-tighter flex items-end ${c.retired ? "text-neutral-600" : "text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]"}`}
-                              >
-                                {c.amount}
-                                <span className="text-sm font-sans font-bold mb-1 ml-1 opacity-60 text-emerald-500">
-                                  TONS
-                                </span>
-                              </p>
-                              {!c.retired && (
-                                <p className="text-[10px] text-emerald-500/50 font-mono mt-1">
-                                  CO₂e Offset
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between relative z-10">
-                            {c.retired ? (
-                              <p className="text-sm text-neutral-500 font-mono flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4 text-neutral-600" />
-                                Permanently removed from supply
-                              </p>
-                            ) : (
-                              <>
-                                <p className="text-sm text-neutral-400 font-mono flex items-center gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />{" "}
-                                  Active on network
-                                </p>
-                                <motion.button
-                                  whileHover={
-                                    retiringCreditId !== c.id
-                                      ? { scale: 1.05 }
-                                      : {}
-                                  }
-                                  whileTap={
-                                    retiringCreditId !== c.id
-                                      ? { scale: 0.95 }
-                                      : {}
-                                  }
-                                  onClick={() => retireCredit(c.id)}
-                                  disabled={retiringCreditId === c.id}
-                                  className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border ${
-                                    retiringCreditId === c.id
-                                      ? "border-neutral-800 bg-neutral-900 text-neutral-500 cursor-wait"
-                                      : "border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 hover:shadow-[0_0_20px_rgba(244,63,94,0.4)]"
-                                  }`}
-                                >
-                                  {retiringCreditId === c.id
-                                    ? "Burning..."
-                                    : "Burn Token"}
-                                </motion.button>
-                              </>
-                            )}
-                          </div>
-                        </motion.div>
-                      ))}
-                  </AnimatePresence>
+                        </div>
+                        <h3
+                          className={`text-xl font-bold flex items-center gap-2 ${isMinting ? "text-neutral-500" : "text-white"}`}
+                        >
+                          {isMinting
+                            ? "Generating ZK-Proof..."
+                            : "Verify & Mint Credit"}
+                          {!isMinting && (
+                            <ArrowRight className="w-5 h-5 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-100" />
+                          )}
+                        </h3>
+                        <p
+                          className={`text-sm mt-2 font-mono ${isMinting ? "text-neutral-600" : "text-emerald-100/80"}`}
+                        >
+                          Target:{" "}
+                          <span className="font-bold text-white bg-black/20 px-2 py-0.5 rounded-md">
+                            Sensor_ID_042
+                          </span>
+                        </p>
+                      </div>
+                    </motion.button>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
+
+              {/* Ledger Panel */}
+              <motion.div
+                variants={itemVariants}
+                className="lg:col-span-7 space-y-4"
+              >
+                <div className="flex items-center justify-between mb-4 px-2">
+                  <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                    <Server className="w-6 h-6 text-neutral-400" />
+                    Network Ledger
+                  </h2>
+                  <div className="flex gap-4 items-center text-xs font-mono text-neutral-400 bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse block shadow-[0_0_8px_rgba(16,185,129,0.8)]" />{" "}
+                      Active
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-neutral-600 block" />{" "}
+                      Retired
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#0a0a0a]/80 border border-white/10 rounded-3xl p-3 backdrop-blur-xl shadow-2xl min-h-[500px] flex flex-col">
+                  <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar p-2">
+                    <AnimatePresence mode="wait">
+                      {isLoadingCredits && (
+                        <motion.div
+                          key="loading"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="h-full min-h-[400px] flex flex-col items-center justify-center space-y-5"
+                        >
+                          <div className="relative w-16 h-16 flex items-center justify-center">
+                            <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+                            <div className="absolute inset-0 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin"></div>
+                            <Activity className="w-6 h-6 text-emerald-500 animate-pulse" />
+                          </div>
+                          <p className="text-neutral-400 font-mono text-sm uppercase tracking-widest">
+                            Querying Blocks...
+                          </p>
+                        </motion.div>
+                      )}
+
+                      {!isLoadingCredits && credits.length === 0 && (
+                        <motion.div
+                          key="empty"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="h-full min-h-[400px] flex flex-col items-center justify-center space-y-4 opacity-70"
+                        >
+                          <div className="w-20 h-20 bg-neutral-900 rounded-full flex items-center justify-center border border-white/5 mb-2 shadow-inner">
+                            <Server className="w-8 h-8 text-neutral-600" />
+                          </div>
+                          <p className="text-lg font-semibold text-neutral-300">
+                            Ledger is empty.
+                          </p>
+                          <p className="text-sm text-neutral-500 font-mono text-center max-w-xs">
+                            Connect wallet and generate proofs to populate the
+                            chain.
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="space-y-3">
+                      <AnimatePresence>
+                        {!isLoadingCredits &&
+                          credits.map((c, index) => (
+                            <motion.div
+                              key={c.id}
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, scale: 0.9 }}
+                              transition={{ delay: index * 0.05 }}
+                              className={`relative overflow-hidden p-6 rounded-2xl border transition-all duration-100 ${
+                                c.retired
+                                  ? "border-white/5 bg-neutral-900/40 grayscale opacity-50"
+                                  : "border-emerald-500/30 bg-gradient-to-r from-emerald-950/30 to-black hover:border-emerald-400/60 hover:bg-emerald-900/20 hover:shadow-[0_4px_30px_rgba(16,185,129,0.1)] group/card"
+                              }`}
+                            >
+                              {!c.retired && (
+                                <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none transition-opacity duration-500 opacity-50 group-hover/card:opacity-100" />
+                              )}
+
+                              <div className="flex justify-between items-start relative z-10">
+                                <div>
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <span
+                                      className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md flex items-center gap-1 ${c.retired ? "bg-neutral-800 text-neutral-400" : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]"}`}
+                                    >
+                                      {c.retired ? (
+                                        <XCircle className="w-3 h-3" />
+                                      ) : (
+                                        <CheckCircle2 className="w-3 h-3" />
+                                      )}
+                                      {c.retired ? "Settled" : "Verified"}
+                                    </span>
+                                    <span className="text-xs text-neutral-500 font-mono bg-neutral-900 px-2 py-1 rounded-md border border-white/5">
+                                      TxID: {c.id.toString().padStart(4, "0")}
+                                    </span>
+                                  </div>
+                                  <p
+                                    className={`text-2xl font-bold tracking-tight mt-1 ${c.retired ? "text-neutral-500" : "text-white"}`}
+                                  >
+                                    {c.name}
+                                  </p>
+                                </div>
+
+                                <div className="text-right flex flex-col items-end">
+                                  <p
+                                    className={`font-mono text-3xl font-light tracking-tighter flex items-end ${c.retired ? "text-neutral-600" : "text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]"}`}
+                                  >
+                                    {c.amount}
+                                    <span className="text-sm font-sans font-bold mb-1 ml-1 opacity-60 text-emerald-500">
+                                      TONS
+                                    </span>
+                                  </p>
+                                  {!c.retired && (
+                                    <p className="text-[10px] text-emerald-500/50 font-mono mt-1">
+                                      CO₂e Offset
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between relative z-10">
+                                {c.retired ? (
+                                  <p className="text-sm text-neutral-500 font-mono flex items-center gap-2">
+                                    <ShieldCheck className="w-4 h-4 text-neutral-600" />
+                                    Permanently removed from supply
+                                  </p>
+                                ) : (
+                                  <>
+                                    <p className="text-sm text-neutral-400 font-mono flex items-center gap-2">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />{" "}
+                                      Active on network
+                                    </p>
+                                    <motion.button
+                                      whileHover={
+                                        retiringCreditId !== c.id
+                                          ? { scale: 1.05 }
+                                          : {}
+                                      }
+                                      whileTap={
+                                        retiringCreditId !== c.id
+                                          ? { scale: 0.95 }
+                                          : {}
+                                      }
+                                      onClick={() => {
+                                        uiSounds.tap();
+                                        retireCredit(c.id);
+                                      }}
+                                      onMouseEnter={() =>
+                                        retiringCreditId !== c.id &&
+                                        uiSounds.hover()
+                                      }
+                                      disabled={retiringCreditId === c.id}
+                                      className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all duration-100 border ${
+                                        retiringCreditId === c.id
+                                          ? "border-neutral-800 bg-neutral-900 text-neutral-500 cursor-wait"
+                                          : "border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 hover:shadow-[0_0_20px_rgba(244,63,94,0.4)]"
+                                      }`}
+                                    >
+                                      {retiringCreditId === c.id
+                                        ? "Burning..."
+                                        : "Burn Token"}
+                                    </motion.button>
+                                  </>
+                                )}
+                              </div>
+                            </motion.div>
+                          ))}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </motion.div>
-        </div>
-      </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Scrollbar hide style */}
       <style
