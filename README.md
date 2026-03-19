@@ -21,62 +21,59 @@ The platform securely digitizes the lifecycle of a carbon credit from generation
 
 ```mermaid
 graph TD
-    classDef layerBox fill:#0a0a0a,stroke:#34d399,stroke-width:2px,color:#fff,stroke-dasharray: 5 5;
     classDef actor node fill:#312e81,stroke:#6366f1,stroke-width:2px,color:#fff,rx:8;
     classDef contract fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff;
     
-    subgraph "Data & Privacy Layer"
+    subgraph Layer1 [Data & Privacy Layer]
         A([📡 IoT Sensors]) -->|Raw Data| B(Chainlink Oracle)
         B -->|Encrypted Feed| C{ZK-Proof Engine}
     end
 
-    subgraph "Blockchain Layer (Polygon / Arbitrum)"
+    subgraph Layer2 [Blockchain Layer Polygon / Arbitrum]
         C -->|Valid ZK-Proof| D[MetricGreen Smart Contract]
         P([🌱 Carbon Producer]):::actor -->|Stakes USDC Bond| D
         D -->|Mints ERC-721| E(Carbon Credit NFT)
     end
 
-    subgraph "Marketplace & Verification"
+    subgraph Layer3 [Marketplace & Verification]
         E --> F[Decentralized Marketplace]
         F -->|Purchases & Burns| G([🏢 Corporate Buyer]):::actor
         G -->|Receives| H[On-Chain Offset Certificate]
     end
 
-    style "Data & Privacy Layer" fill:#171717,stroke:#333,stroke-width:1px
-    style "Blockchain Layer (Polygon / Arbitrum)" fill:#171717,stroke:#333,stroke-width:1px
-    style "Marketplace & Verification" fill:#171717,stroke:#333,stroke-width:1px
-```
-
+    style Layer1 fill:#171717,stroke:#333,stroke-width:1px
+    style Layer2 fill:#171717,stroke:#333,stroke-width:1px
+    style Layer3 fill:#171717,stroke:#333,stroke-width:1px
 ### 2. The 4-Phase Workflow
 
 1. **Phase 1: Security Setup (Reputation Bond)**
-   * Producers must deposit a Reputation Bond (in stablecoins like USDC/DAI) into a smart contract escrow. This acts as strict financial collateral against fraudulent reporting.
+   - Producers must deposit a Reputation Bond (in stablecoins like USDC/DAI) into a smart contract escrow. This acts as strict financial collateral against fraudulent reporting.
 
 2. **Phase 2: Data Ingestion & ZK-Verification**
-   * Metrics are collected via IoT sensors and external APIs through Chainlink Functions. 
-   * Instead of uploading sensitive raw corporate data, producers generate a local **Zero-Knowledge Proof (zk-SNARK)** that mathematically confirms compliance with predefined thresholds.
+   - Metrics are collected via IoT sensors and external APIs through Chainlink Functions.
+   - Instead of uploading sensitive raw corporate data, producers generate a local **Zero-Knowledge Proof (zk-SNARK)** that mathematically confirms compliance with predefined thresholds.
 
 3. **Phase 3: Automated Minting & The "Challenge Window"**
-   * Upon programmatic verification of the ZK-Proof, the smart contract dynamically mints a unique ERC-721 Carbon Credit NFT. 
-   * The asset briefly enters a "challenge window" where the Reputation Bond remains locked and can be slashed if manual anomalies are detected.
+   - Upon programmatic verification of the ZK-Proof, the smart contract dynamically mints a unique ERC-721 Carbon Credit NFT.
+   - The asset briefly enters a "challenge window" where the Reputation Bond remains locked and can be slashed if manual anomalies are detected.
 
 4. **Phase 4: Marketplace Exchange & Irreversible Retirement**
-   * The NFT is listed on the platform marketplace. 
-   * Corporations purchase credits using stablecoins. To claim the carbon offset, the NFT is irreversibly `burned` via the contract's retire function, dropping the circulating supply and generating a permanent, tamper-proof on-chain certificate.
+   - The NFT is listed on the platform marketplace.
+   - Corporations purchase credits using stablecoins. To claim the carbon offset, the NFT is irreversibly `burned` via the contract's retire function, dropping the circulating supply and generating a permanent, tamper-proof on-chain certificate.
 
 ---
 
 ## 🛠 Technical Stack
 
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Blockchain** | Polygon / Arbitrum (L2) | Low-cost, high-throughput transactions for minting & retiring. |
-| **Smart Contracts** | Solidity | Implements NFT logic, ownership tracking, and Reputation Escrow. |
-| **Privacy Layer** | Circom / SnarkJS | Generates and verifies Zero-Knowledge Proofs. |
-| **Oracles** | Chainlink Functions | Connects off-chain IoT measurements to on-chain logic. |
-| **Storage** | IPFS (via Pinata) | Stores encrypted reports and metadata in a decentralized manner. |
-| **Frontend** | Next.js 15 & Tailwind v4 | Web3 dashboard for monitoring carbon offsets and transactions. |
-| **Development** | Foundry / Hardhat | Supports intelligent smart contract development and testing. |
+| Layer               | Technology               | Purpose                                                          |
+| :------------------ | :----------------------- | :--------------------------------------------------------------- |
+| **Blockchain**      | Polygon / Arbitrum (L2)  | Low-cost, high-throughput transactions for minting & retiring.   |
+| **Smart Contracts** | Solidity                 | Implements NFT logic, ownership tracking, and Reputation Escrow. |
+| **Privacy Layer**   | Circom / SnarkJS         | Generates and verifies Zero-Knowledge Proofs.                    |
+| **Oracles**         | Chainlink Functions      | Connects off-chain IoT measurements to on-chain logic.           |
+| **Storage**         | IPFS (via Pinata)        | Stores encrypted reports and metadata in a decentralized manner. |
+| **Frontend**        | Next.js 15 & Tailwind v4 | Web3 dashboard for monitoring carbon offsets and transactions.   |
+| **Development**     | Foundry / Hardhat        | Supports intelligent smart contract development and testing.     |
 
 ---
 
