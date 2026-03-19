@@ -23,7 +23,7 @@ import { uiSounds } from "../hooks/useTactileHaptics";
 import { ScrambleLabel } from "../components/ScrambleText";
 
 const contractABI = [
-  "function depositBond() public payable",
+  "function registerCertificate(string memory _certId) public",
   "function mintCredit(string memory _name, uint256 _amount) public",
   "function retireCredit(uint256 _index) public",
   "function credits(uint256) public view returns (string name, uint256 amount, bool isRetired)",
@@ -101,7 +101,7 @@ export default function Home() {
   const [account, setAccount] = useState("");
   const [ensName, setEnsName] = useState(null);
   const [credits, setCredits] = useState([]);
-  const [isStaking, setIsStaking] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
   const [retiringCreditId, setRetiringCreditId] = useState(null);
   const [isLoadingCredits, setIsLoadingCredits] = useState(false);
@@ -234,36 +234,46 @@ export default function Home() {
     }
   }
 
-  async function stake() {
-    if (!account) return (() => { uiSounds.error(); toast.error("Connect wallet first!"); })();
-    setIsStaking(true);
+  async function registerCertificate() {
+    if (!account)
+      return (() => {
+        uiSounds.error();
+        toast.error("Connect wallet first!");
+      })();
+    setIsRegistering(true);
     try {
       setStatus({ code: "", message: "" });
       const provider = new ethers.BrowserProvider(window.ethereum);
       const contract = await getContract(provider, { withSigner: true });
-      const tx = await contract.depositBond({
-        value: ethers.parseEther("0.01"),
-      });
+      const tx = await contract.registerCertificate("VCS001");
       await tx.wait();
       setStatus({
         code: "SUCCESS",
-        message: "Bond deposited successfully.",
+        message: "Certificate registered successfully.",
       });
-      uiSounds.notification(); toast.success("Reputation Bond Staked!", {
-        description: "Your trust layer is secured. View on Etherscan.",
+      uiSounds.notification();
+      toast.success("Registry Certificate (VCS001) Verified!", {
+        description: "Your identity is secured on-chain. View on Etherscan.",
       });
     } catch (error) {
       setStatus(getContractErrorDetails(error));
       if (error?.code === 4001 || error?.code === "ACTION_REJECTED")
-        (() => { uiSounds.error(); toast.error("Transaction cancelled by user."); })();
-      else alert("Staking failed. Check balance or selected network.");
+        (() => {
+          uiSounds.error();
+          toast.error("Transaction cancelled by user.");
+        })();
+      else alert("Registration failed. Check selected network.");
     } finally {
-      setIsStaking(false);
+      setIsRegistering(false);
     }
   }
 
   async function mint() {
-    if (!account) return (() => { uiSounds.error(); toast.error("Connect wallet first!"); })();
+    if (!account)
+      return (() => {
+        uiSounds.error();
+        toast.error("Connect wallet first!");
+      })();
     setIsMinting(true);
 
     setTimeout(async () => {
@@ -282,20 +292,28 @@ export default function Home() {
           code: "SUCCESS",
           message: "Credit minted successfully.",
         });
-        uiSounds.notification(); toast.success("Carbon Credit Minted", {
+        uiSounds.notification();
+        toast.success("Carbon Credit Minted", {
           description: "Verified via simulated ZK-Proof offchain.",
         });
       } catch (error) {
         setIsMinting(false);
         setStatus(getContractErrorDetails(error));
         if (error?.code === 4001 || error?.code === "ACTION_REJECTED")
-          (() => { uiSounds.error(); toast.error("Minting cancelled by user."); })();
+          (() => {
+            uiSounds.error();
+            toast.error("Minting cancelled by user.");
+          })();
       }
     }, 3000);
   }
 
   async function retireCredit(creditId) {
-    if (!account) return (() => { uiSounds.error(); toast.error("Connect wallet first!"); })();
+    if (!account)
+      return (() => {
+        uiSounds.error();
+        toast.error("Connect wallet first!");
+      })();
     setRetiringCreditId(creditId);
 
     try {
@@ -314,7 +332,10 @@ export default function Home() {
     } catch (error) {
       setStatus(getContractErrorDetails(error));
       if (error?.code === 4001 || error?.code === "ACTION_REJECTED")
-        (() => { uiSounds.error(); toast.error("Retirement cancelled by user."); })();
+        (() => {
+          uiSounds.error();
+          toast.error("Retirement cancelled by user.");
+        })();
       else
         alert("Retirement failed. Check the selected network and try again.");
     } finally {
@@ -669,16 +690,16 @@ export default function Home() {
 
                   <div className="space-y-5 relative z-10">
                     <motion.button
-                      whileHover={!isStaking ? { scale: 1.02, y: -2 } : {}}
-                      whileTap={!isStaking ? { scale: 0.98 } : {}}
+                      whileHover={!isRegistering ? { scale: 1.02, y: -2 } : {}}
+                      whileTap={!isRegistering ? { scale: 0.98 } : {}}
                       onClick={() => {
                         uiSounds.tap();
-                        stake();
+                        registerCertificate();
                       }}
-                      onMouseEnter={() => !isStaking && uiSounds.hover()}
-                      disabled={isStaking}
+                      onMouseEnter={() => !isRegistering && uiSounds.hover()}
+                      disabled={isRegistering}
                       className={`w-full group relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-100 border ${
-                        isStaking
+                        isRegistering
                           ? "bg-neutral-900 border-white/5 cursor-not-allowed opacity-70"
                           : "bg-neutral-900/50 border-white/10 hover:border-emerald-500/50 hover:bg-emerald-950/20 shadow-lg hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]"
                       }`}
@@ -687,21 +708,21 @@ export default function Home() {
                         <span className="flex items-center gap-2 text-xs text-neutral-400 uppercase tracking-widest font-mono font-semibold">
                           <Lock className="w-3.5 h-3.5" /> Step 01
                         </span>
-                        {isStaking && (
+                        {isRegistering && (
                           <Activity className="w-4 h-4 text-emerald-500 animate-spin" />
                         )}
                       </div>
                       <h3
-                        className={`text-xl font-bold transition-colors duration-100 ${isStaking ? "text-neutral-500" : "text-white group-hover:text-emerald-400"}`}
+                        className={`text-xl font-bold transition-colors duration-100 ${isRegistering ? "text-neutral-500" : "text-white group-hover:text-emerald-400"}`}
                       >
-                        {isStaking
-                          ? "Processing Transaction..."
-                          : "Stake Reputation Bond"}
+                        {isRegistering
+                          ? "Verifying Certificate..."
+                          : "Register VCS001"}
                       </h3>
                       <p className="text-sm text-neutral-500 mt-2 font-mono flex items-center gap-2">
-                        Cost:{" "}
+                        Status:{" "}
                         <span className="text-emerald-500 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                          0.01 ETH
+                          Unregistered
                         </span>
                       </p>
                     </motion.button>

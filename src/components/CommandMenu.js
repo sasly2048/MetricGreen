@@ -80,7 +80,7 @@ export function CommandMenu() {
                       {
                         loading: "Simulating Stake Transaction...",
                         success:
-                          "Reputation Bond Staked. Gas saved: 0.005 ETH (Paymaster)",
+                          "VCS001 Certificate Staked. Gas saved: 0.005 ETH (Paymaster)",
                         error: "Simulation failed",
                       },
                     ),
@@ -89,7 +89,7 @@ export function CommandMenu() {
                 className="flex items-center px-3 py-3 mt-1 rounded-lg cursor-pointer hover:bg-white/10 aria-selected:bg-white/10 text-sm font-medium text-neutral-200 transition-colors duration-100"
               >
                 <Zap className="w-4 h-4 mr-3 text-emerald-400" />
-                Stake Bond (Gasless)
+                Register VCS001 (Gasless)
               </Command.Item>
             </Command.Group>
 

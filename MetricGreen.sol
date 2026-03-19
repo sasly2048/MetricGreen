@@ -10,20 +10,22 @@ contract MetricGreen {
 
     struct CarbonCredit {
         string producerName;
-        uint256 carbonAmount; 
-        bool isRetired;       
+        uint256 carbonAmount;
+        bool isRetired;
     }
 
     CarbonCredit[] public credits;
-    mapping(address => uint256) public reputationBonds; 
+    mapping(address => string) public registryCertificates;
+    mapping(address => bool) public isRegistered;
 
-    function depositBond() public payable {
-        require(msg.value > 0, "Must send some ETH as a bond");
-        reputationBonds[msg.sender] += msg.value;
+    function registerCertificate(string memory _certId) public {
+        require(bytes(_certId).length > 0, "Invalid certificate ID");
+        registryCertificates[msg.sender] = _certId;
+        isRegistered[msg.sender] = true;
     }
 
     function mintCredit(string memory _name, uint256 _amount) public {
-        require(reputationBonds[msg.sender] > 0, "Stake a bond first");
+        require(isRegistered[msg.sender], "Must register with a certificate first");
         credits.push(CarbonCredit(_name, _amount, false));
     }
 
@@ -34,9 +36,10 @@ contract MetricGreen {
         credits[_index].isRetired = true;
     }
 
-    function slashProducer(address _producer) public {
-        require(msg.sender == admin, "Only admin can slash");
-        reputationBonds[_producer] = 0;
+    function revokeCertificate(address _producer) public {
+        require(msg.sender == admin, "Only admin can revoke");
+        isRegistered[_producer] = false;
+        registryCertificates[_producer] = "";
     }
 
     function getCreditsCount() public view returns(uint) {
