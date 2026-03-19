@@ -18,15 +18,15 @@ MetricGreen is a blockchain-based platform designed to eliminate greenwashing an
 Our architecture digitizes and secures the lifecycle of a carbon credit end-to-end:
 
 1. **Security Setup (Reputation Bond)**
-   Producers deposit into a smart contract escrow. This acts as strict financial collateral against fraudulent reporting.
+   Producers deposit into a smart contract. This acts as strict financial collateral against fraudulent reporting.
 
-2. **Data Ingestion & ZK-Verification**
+3. **Data Ingestion & ZK-Verification**
    Production metrics are routed via IoT sensors and Chainlink Functions. Producers generate a local **Zero-Knowledge Proof** to mathematically confirm compliance with environmental thresholds without uploading any raw proprietary data.
 
-3. **Automated Minting & Challenge Window**
+4. **Automated Minting & Challenge Window**
    Upon programmatic verification of the proof, the smart contract dynamically mints a unique ERC-721 Carbon Credit NFT. The asset briefly enters a "challenge window" where the bond remains locked.
 
-4. **Marketplace Exchange & Retirement**
+5. **Marketplace Exchange & Retirement**
    The NFT is listed on the platform marketplace. When a corporate buyer purchases and claims the offset, the NFT is irreversibly `burned`, dropping the circulating supply and generating a permanent, tamper-proof on-chain certificate.
 
 ---
