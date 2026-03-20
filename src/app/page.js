@@ -305,9 +305,15 @@ export default function Home() {
         await tx.wait();
       } catch (innerErr) {
         if (
-          String(innerErr?.message || innerErr?.reason || innerErr).includes("no data present") ||
-          String(innerErr?.message || innerErr?.reason || innerErr).includes("Execution reverted") ||
-          String(innerErr?.message || innerErr?.reason || innerErr).includes("does not exist")
+          String(innerErr?.message || innerErr?.reason || innerErr).includes(
+            "no data present",
+          ) ||
+          String(innerErr?.message || innerErr?.reason || innerErr).includes(
+            "Execution reverted",
+          ) ||
+          String(innerErr?.message || innerErr?.reason || innerErr).includes(
+            "does not exist",
+          )
         ) {
           console.warn(
             "Contract not fully deployed or missing method. Simulating success for demo...",
@@ -492,11 +498,21 @@ export default function Home() {
           await tx.wait();
         } catch (innerErr) {
           if (
-            String(innerErr?.message || innerErr?.reason || innerErr).includes("no data present") ||
-            String(innerErr?.message || innerErr?.reason || innerErr).includes("Execution reverted") ||
-            String(innerErr?.message || innerErr?.reason || innerErr).includes("does not exist") ||
-            String(innerErr?.message || innerErr?.reason || innerErr).includes("reputationBonds") ||
-            String(innerErr?.message || innerErr?.reason || innerErr).includes("Stake a bond")
+            String(innerErr?.message || innerErr?.reason || innerErr).includes(
+              "no data present",
+            ) ||
+            String(innerErr?.message || innerErr?.reason || innerErr).includes(
+              "Execution reverted",
+            ) ||
+            String(innerErr?.message || innerErr?.reason || innerErr).includes(
+              "does not exist",
+            ) ||
+            String(innerErr?.message || innerErr?.reason || innerErr).includes(
+              "reputationBonds",
+            ) ||
+            String(innerErr?.message || innerErr?.reason || innerErr).includes(
+              "Stake a bond",
+            )
           ) {
             console.warn(
               "Contract not fully deployed or old logic active. Simulating mint success for demo...",
@@ -563,11 +579,21 @@ export default function Home() {
         await tx.wait();
       } catch (innerErr) {
         if (
-          String(innerErr?.message || innerErr?.reason || innerErr).includes("no data present") ||
-          String(innerErr?.message || innerErr?.reason || innerErr).includes("Execution reverted") ||
-          String(innerErr?.message || innerErr?.reason || innerErr).includes("does not exist") ||
-          String(innerErr?.message || innerErr?.reason || innerErr).includes("Invalid credit index") ||
-          String(innerErr?.message || innerErr?.reason || innerErr).includes("Already retired")
+          String(innerErr?.message || innerErr?.reason || innerErr).includes(
+            "no data present",
+          ) ||
+          String(innerErr?.message || innerErr?.reason || innerErr).includes(
+            "Execution reverted",
+          ) ||
+          String(innerErr?.message || innerErr?.reason || innerErr).includes(
+            "does not exist",
+          ) ||
+          String(innerErr?.message || innerErr?.reason || innerErr).includes(
+            "Invalid credit index",
+          ) ||
+          String(innerErr?.message || innerErr?.reason || innerErr).includes(
+            "Already retired",
+          )
         ) {
           console.warn(
             "Contract not fully deployed or old logic active. Simulating retirement success for demo...",
