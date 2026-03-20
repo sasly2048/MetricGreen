@@ -1,6 +1,6 @@
 # 🌿 MetricGreen - **Decentralized Carbon Credit Infrastructure**
 
-MetricGreen is a blockchain-based platform designed to eliminate greenwashing and double-counting in the voluntary carbon market (VCM). By integrating real-time IoT data with smart contracts through decentralized oracles, the system automates the minting of carbon credit NFTs based on verifiable, real-world environmental impact.
+MetricGreen is a blockchain-based platform designed to eliminate greenw\ashing and double-counting in the voluntary carbon market (VCM). By integrating real-time IoT data with smart contracts through decentralized oracles, the system automates the minting of carbon credit NFTs based on verifiable, real-world environmental impact.
 
 ---
 
@@ -33,15 +33,37 @@ Our architecture digitizes and secures the lifecycle of a carbon credit end-to-e
 
 ## 🛠 Technical Stack
 
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Blockchain** | Polygon / Arbitrum | Low-cost, high-throughput transactions for minting & retiring. |
-| **Smart Contracts** | Solidity | Implements NFT logic, ownership tracking, and Registry Integrations. |
-| **Privacy Layer** | Circom / SnarkJS | Generates and verifies Zero-Knowledge Proofs off-chain. |
-| **Oracles** | Chainlink Functions | Connects real-world IoT measurements to on-chain logic. |
-| **Storage** | IPFS (Pinata) | Stores encrypted reports and metadata in a decentralized manner. |
-| **Frontend** | Next.js 15 & Tailwind v4 | Hyper-responsive Web3 dashboard for monitoring offsets. |
-| **Development** | Foundry / Hardhat | High-performance smart contract compilation and testing. |
+| Layer               | Technology               | Purpose                                                              |
+| :------------------ | :----------------------- | :------------------------------------------------------------------- |
+| **Blockchain**      | Polygon / Arbitrum       | Low-cost, high-throughput transactions for minting & retiring.       |
+| **Smart Contracts** | Solidity                 | Implements NFT logic, ownership tracking, and Registry Integrations. |
+| **Privacy Layer**   | Circom / SnarkJS         | Generates and verifies Zero-Knowledge Proofs off-chain.              |
+| **Oracles**         | Chainlink Functions      | Connects real-world IoT measurements to on-chain logic.              |
+| **Storage**         | IPFS (Pinata)            | Stores encrypted reports and metadata in a decentralized manner.     |
+| **Frontend**        | Next.js 15 & Tailwind v4 | Hyper-responsive Web3 dashboard for monitoring offsets.              |
+| **Development**     | Foundry / Hardhat        | High-performance smart contract compilation and testing.             |
+
+---
+
+## �️ Sensor Fusion (IoT + Satellite dMRV)
+
+To eliminate "The Oracle Problem" and prevent factory greenwashing, MetricGreen utilizes a **Dual-Node Sensor Fusion architecture**. It cross-references self-reported IoT hardware telemetry from the ground against unforgeable Earth Observation (Satellite) data from space!
+
+1. Create a `.env.local` file in the root directory.
+2. Add your Smart Contract Address and your IoT API credentials:
+
+```env
+NEXT_PUBLIC_METRIC_GREEN_CONTRACT_ADDRESS="0xYourDeployedContractAddress"
+
+# Ground Node: Factory IoT Gateway
+IOT_SENSOR_API_KEY="your_iot_gateway_key_here"
+
+# Space Node: Geospatial dMRV Oracle (e.g. Sentinel-5P, GHGSat)
+SATELLITE_ORACLE_API_KEY="your_satellite_provider_key_here"
+SATELLITE_ORACLE_URL="https://api.space-observation.com/v1/co2-column"
+```
+
+MetricGreen is designed to pull raw `CO2e` reduction metrics securely via this external API, funnel it locally through the Zero-Knowledge generation layer, and publish **only** the mathematical cryptographic proof on-chain—fully protecting your raw proprietary factory telemetry.
 
 ---
 
@@ -49,9 +71,9 @@ Our architecture digitizes and secures the lifecycle of a carbon credit end-to-e
 
 First, install dependencies and run the development server:
 
-`ash
+``\ash
 npm install
 npm run dev
-`
+``
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to explore the dashboard.
