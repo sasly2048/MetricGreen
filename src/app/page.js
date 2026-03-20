@@ -347,6 +347,21 @@ export default function Home() {
         uiSounds.error();
         toast.error("Connect wallet first!");
       })();
+
+    if (
+      !mintProjectName ||
+      !mintRegistryName ||
+      !mintProjectId ||
+      !mintAmount
+    ) {
+      return (() => {
+        uiSounds.error();
+        toast.error(
+          "Please fill in all the project details (Name, Registry, ID, and Credits) first.",
+        );
+      })();
+    }
+
     setIsMinting(true);
 
     setTimeout(async () => {
@@ -1002,43 +1017,35 @@ export default function Home() {
                           className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
                         />
                       </div>
-                      <div className="flex gap-3">
-                        <div className="flex flex-col flex-1">
-                          <label className="text-xs uppercase font-mono text-neutral-400 mb-1">
-                            Registry
-                          </label>
-                          <input
-                            type="text"
+                      <div className="grid grid-cols-12 gap-3">
+                        <div className="flex flex-col col-span-5">
+                          <label className="text-xs uppercase font-mono text-neutral-400 mb-1">Registry</label>
+                          <input 
+                            type="text" 
                             placeholder="e.g. Verra"
                             value={mintRegistryName}
-                            onChange={(e) =>
-                              setMintRegistryName(e.target.value)
-                            }
-                            className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                            onChange={(e) => setMintRegistryName(e.target.value)}
+                            className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors w-full"
                           />
                         </div>
-                        <div className="flex flex-col flex-1">
-                          <label className="text-xs uppercase font-mono text-neutral-400 mb-1">
-                            Project ID
-                          </label>
-                          <input
-                            type="text"
+                        <div className="flex flex-col col-span-4">
+                          <label className="text-xs uppercase font-mono text-neutral-400 mb-1">Project ID</label>
+                          <input 
+                            type="text" 
                             placeholder="e.g. VCS-001"
                             value={mintProjectId}
                             onChange={(e) => setMintProjectId(e.target.value)}
-                            className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                            className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors w-full"
                           />
                         </div>
-                        <div className="flex flex-col w-20">
-                          <label className="text-xs uppercase font-mono text-neutral-400 mb-1">
-                            Credits
-                          </label>
-                          <input
-                            type="number"
+                        <div className="flex flex-col col-span-3">
+                          <label className="text-xs uppercase font-mono text-neutral-400 mb-1">Credits</label>
+                          <input 
+                            type="number" 
                             placeholder="Amt"
                             value={mintAmount}
                             onChange={(e) => setMintAmount(e.target.value)}
-                            className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                            className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors w-full"
                           />
                         </div>
                       </div>
