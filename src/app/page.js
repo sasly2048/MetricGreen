@@ -646,12 +646,50 @@ export default function Home() {
   };
 
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    setMounted(true);
+    const updateMousePosition = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', updateMousePosition);
+    return () => window.removeEventListener('mousemove', updateMousePosition);
+  }, []);
+
   if (!mounted) return null;
 
   return (
     <main className="min-h-screen relative bg-[#030712] text-neutral-200 font-sans selection:bg-emerald-500/30 overflow-hidden">
-      {/* Background Glows - SaaS Multi-Color Palette */}
+      {/* Custom Mouse Spotlight */}
+        <div 
+          className="pointer-events-none fixed inset-0 z-[1] transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(800px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(16,185,129,0.06), transparent 40%)`
+          }}
+        />
+        
+        {/* Floating Cyber Particles */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ y: Math.random() * 1000, x: Math.random() * 1500, opacity: 0 }}
+              animate={{ 
+                y: [Math.random() * 1000, Math.random() * 1000], 
+                x: [Math.random() * 1500, Math.random() * 1500],
+                opacity: [0.1, Math.random() * 0.5 + 0.2, 0.1]
+              }}
+              transition={{ duration: Math.random() * 20 + 20, repeat: Infinity, ease: "linear" }}
+              className="absolute w-1 h-1 bg-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.8)]"
+            />
+          ))}
+        </div>
+
+        {/* Animated Grid Overlay */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] z-0 pointer-events-none" />
+
+        {/* Background Glows - SaaS Multi-Color Palette */}
       <motion.div
         animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
@@ -696,7 +734,7 @@ export default function Home() {
               <Leaf className="w-5 h-5 text-black relative z-10" />
             </motion.div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-widest uppercase flex items-center gap-1">
+              <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-br from-emerald-400 to-green-600 tracking-widest uppercase flex items-center gap-1 animate-pulse">
                 Metric<span className="text-emerald-400">Green</span>
               </h1>
               <p className="text-[10px] text-emerald-400/60 font-mono tracking-widest uppercase flex items-center gap-1">
@@ -1338,6 +1376,11 @@ export default function Home() {
       `,
         }}
       />
+    
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
+        @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 10px rgba(16,185,129,0.3)); } 50% { filter: drop-shadow(0 0 25px rgba(16,185,129,0.8)); } }
+        `}} />
     </main>
   );
 }
