@@ -1,6 +1,6 @@
 # 🌿 MetricGreen - **Decentralized Carbon Credit Infrastructure**
 
-MetricGreen is a blockchain-based platform designed to eliminate greenw\ashing and double-counting in the voluntary carbon market (VCM). By integrating real-time IoT data with smart contracts through decentralized oracles, the system automates the minting of carbon credit NFTs based on verifiable, real-world environmental impact.
+MetricGreen is a blockchain-based platform designed to eliminate greenwashing and double-counting in the voluntary carbon market (VCM). By integrating real-time IoT data with smart contracts through decentralized oracles, the system automates the minting of carbon credit NFTs based on verifiable, real-world environmental impact.
 
 ---
 
@@ -27,7 +27,7 @@ Our architecture digitizes and secures the lifecycle of a carbon credit end-to-e
    Upon programmatic verification of the proof, the smart contract dynamically mints a unique ERC-721 Carbon Credit NFT. The asset briefly enters a "challenge window" pending third-party verifier attestation against the VCS001 registry.
 
 4. **Marketplace Exchange & Retirement**
-   The NFT is listed on the platform marketplace. When a corporate buyer purchases and claims the offset, the NFT is irreversibly urned, dropping the circulating supply and generating a permanent, tamper-proof on-chain certificate.
+   The NFT is listed on the platform marketplace. When a corporate buyer purchases and claims the offset, the NFT is irreversibly turned, dropping the circulating supply and generating a permanent, tamper-proof on-chain certificate.
 
 ---
 
