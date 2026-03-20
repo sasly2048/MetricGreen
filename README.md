@@ -66,6 +66,10 @@ MetricGreen is designed to pull raw `CO2e` reduction metrics securely via this e
 
 ## ⚡ Getting Started
 
+**Prerequisites:** 
+- A Web3 Crypto Wallet like [MetaMask](https://metamask.io/) installed in your browser is **required** to interact with the blockchain and mint carbon credits.
+- Node.js installed on your machine.
+
 First, install dependencies and run the development server:
 
 ```bash
