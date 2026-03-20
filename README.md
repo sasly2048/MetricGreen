@@ -71,7 +71,7 @@ MetricGreen is designed to pull raw `CO2e` reduction metrics securely via this e
 
 First, install dependencies and run the development server:
 
-`
+``
 bash
 npm install
 npm run dev
