@@ -1120,6 +1120,9 @@ export default function Home() {
                       </div>
                     </motion.div>
                   </div>
+                </div>
+              </motion.div>
+
               {/* Ledger Panel */}
               <motion.div
                 variants={itemVariants}
