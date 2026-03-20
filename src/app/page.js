@@ -108,6 +108,11 @@ export default function Home() {
   const [isLoadingCredits, setIsLoadingCredits] = useState(false);
   const [status, setStatus] = useState({ code: "", message: "" });
 
+  const [mintProjectName, setMintProjectName] = useState("");
+  const [mintRegistryName, setMintRegistryName] = useState("");
+  const [mintProjectId, setMintProjectId] = useState("");
+  const [mintAmount, setMintAmount] = useState("");
+
   async function getContract(provider, { withSigner = false } = {}) {
     if (!contractAddress) {
       throw new Error(
@@ -457,11 +462,17 @@ export default function Home() {
 
         // Attempt on-chain interaction
         try {
+          const finalAmount = mintAmount
+            ? parseInt(mintAmount, 10)
+            : targetAmount;
+          const finalProjectName = mintProjectName || "Amazon Reforestation";
+          const finalRegistryName = mintRegistryName || "Verra";
+          const finalProjectId = mintProjectId || "VCS-001";
           const tx = await contract.mintCredit(
-            "Amazon Reforestation",
-            "Verra",
-            "VCS-001",
-            targetAmount,
+            finalProjectName,
+            finalRegistryName,
+            finalProjectId,
+            finalAmount,
           );
           await tx.wait();
         } catch (innerErr) {
@@ -481,10 +492,12 @@ export default function Home() {
               ...prev,
               {
                 id: prev.length,
-                name: "Amazon Reforestation",
-                registry: "Verra",
-                projectId: "VCS-001",
-                amount: targetAmount.toString(),
+                name: mintProjectName || "Amazon Reforestation",
+                registry: mintRegistryName || "Verra",
+                projectId: mintProjectId || "VCS-001",
+                amount: mintAmount
+                  ? mintAmount.toString()
+                  : targetAmount.toString(),
                 retired: false,
                 zkProof: `0x${Math.random().toString(16).substring(2, 6)}...${Math.random().toString(16).substring(2, 6)}`,
               },
@@ -976,6 +989,61 @@ export default function Home() {
                       </p>
                     </motion.button>
 
+                    <div className="bg-neutral-900/50 p-4 rounded-xl border border-white/5 space-y-3 relative z-10">
+                      <div className="flex flex-col">
+                        <label className="text-xs uppercase font-mono text-neutral-400 mb-1">
+                          Project Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Amazon Reforestation"
+                          value={mintProjectName}
+                          onChange={(e) => setMintProjectName(e.target.value)}
+                          className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                        />
+                      </div>
+                      <div className="flex gap-3">
+                        <div className="flex flex-col flex-1">
+                          <label className="text-xs uppercase font-mono text-neutral-400 mb-1">
+                            Registry
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Verra"
+                            value={mintRegistryName}
+                            onChange={(e) =>
+                              setMintRegistryName(e.target.value)
+                            }
+                            className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                          />
+                        </div>
+                        <div className="flex flex-col flex-1">
+                          <label className="text-xs uppercase font-mono text-neutral-400 mb-1">
+                            Project ID
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. VCS-001"
+                            value={mintProjectId}
+                            onChange={(e) => setMintProjectId(e.target.value)}
+                            className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                          />
+                        </div>
+                        <div className="flex flex-col w-20">
+                          <label className="text-xs uppercase font-mono text-neutral-400 mb-1">
+                            Credits
+                          </label>
+                          <input
+                            type="number"
+                            placeholder="Amt"
+                            value={mintAmount}
+                            onChange={(e) => setMintAmount(e.target.value)}
+                            className="bg-black/50 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <motion.button
                       whileHover={
                         !isMinting && hasRegistered
@@ -1033,7 +1101,7 @@ export default function Home() {
                         >
                           Target:{" "}
                           <span className="font-bold text-white bg-black/20 px-2 py-0.5 rounded-md">
-                            Sensor_ID_042
+                            {mintProjectId || "VCS-001"}
                           </span>
                         </p>
                       </div>
