@@ -9,7 +9,9 @@ contract MetricGreen {
     }
 
     struct CarbonCredit {
-        string producerName;
+        string projectName;
+        string registryName;
+        string projectId;
         uint256 carbonAmount;
         bool isRetired;
     }
@@ -24,9 +26,14 @@ contract MetricGreen {
         isRegistered[msg.sender] = true;
     }
 
-    function mintCredit(string memory _name, uint256 _amount) public {
+    function mintCredit(
+        string memory _projectName, 
+        string memory _registryName, 
+        string memory _projectId, 
+        uint256 _amount
+    ) public {
         require(isRegistered[msg.sender], "Must register with a certificate first");
-        credits.push(CarbonCredit(_name, _amount, false));
+        credits.push(CarbonCredit(_projectName, _registryName, _projectId, _amount, false));
     }
 
     function retireCredit(uint256 _index) public {

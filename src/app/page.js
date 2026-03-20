@@ -24,9 +24,9 @@ import { ScrambleLabel } from "../components/ScrambleText";
 
 const contractABI = [
   "function registerCertificate(string memory _certId) public",
-  "function mintCredit(string memory _name, uint256 _amount) public",
+  "function mintCredit(string memory _projectName, string memory _registryName, string memory _projectId, uint256 _amount) public",
   "function retireCredit(uint256 _index) public",
-  "function credits(uint256) public view returns (string name, uint256 amount, bool isRetired)",
+  "function credits(uint256) public view returns (string projectName, string registryName, string projectId, uint256 carbonAmount, bool isRetired)",
   "function getCreditsCount() public view returns (uint)",
 ];
 
@@ -152,6 +152,8 @@ export default function Home() {
             {
               id: 0,
               name: "WindFarm Alpha",
+              registry: "Verra",
+              projectId: "VCS-001",
               amount: "500",
               retired: false,
               zkProof: "0x8f7b...3c1a",
@@ -159,6 +161,8 @@ export default function Home() {
             {
               id: 1,
               name: "Solar Grid 9",
+              registry: "Gold Standard",
+              projectId: "GS-4321",
               amount: "250",
               retired: true,
               zkProof: "0x4a2e...9d8f",
@@ -173,7 +177,9 @@ export default function Home() {
         const c = await contract.credits(i);
         list.push({
           id: i,
-          name: c.name || c.producerName || "Unknown",
+          name: c.projectName || c.name || c.producerName || "Unknown",
+          registry: c.registryName || "Verra",
+          projectId: c.projectId || "VCS-001",
           amount: c.amount
             ? c.amount.toString()
             : c.carbonAmount
@@ -451,7 +457,12 @@ export default function Home() {
 
         // Attempt on-chain interaction
         try {
-          const tx = await contract.mintCredit(sensorId, targetAmount);
+          const tx = await contract.mintCredit(
+            "Amazon Reforestation",
+            "Verra",
+            "VCS-001",
+            targetAmount,
+          );
           await tx.wait();
         } catch (innerErr) {
           if (
@@ -470,7 +481,9 @@ export default function Home() {
               ...prev,
               {
                 id: prev.length,
-                name: sensorId,
+                name: "Amazon Reforestation",
+                registry: "Verra",
+                projectId: "VCS-001",
                 amount: targetAmount.toString(),
                 retired: false,
                 zkProof: `0x${Math.random().toString(16).substring(2, 6)}...${Math.random().toString(16).substring(2, 6)}`,
@@ -1143,6 +1156,20 @@ export default function Home() {
                                   >
                                     {c.name}
                                   </p>
+                                  {(c.registry || c.projectId) && (
+                                    <div className="text-[10px] text-neutral-400 mt-2 flex items-center gap-2">
+                                      {c.registry && (
+                                        <span className="bg-white/5 px-2 py-0.5 rounded border border-white/10 uppercase">
+                                          {c.registry}
+                                        </span>
+                                      )}
+                                      {c.projectId && (
+                                        <span className="font-mono text-neutral-500 bg-neutral-900/50 px-2 py-0.5 rounded border border-white/5">
+                                          {c.projectId}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
 
                                 <div className="text-right flex flex-col items-end">
