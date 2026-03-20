@@ -958,7 +958,7 @@ export default function Home() {
                 variants={itemVariants}
                 className="lg:col-span-5 space-y-6"
               >
-                <div className="p-8 rounded-3xl border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-2xl relative overflow-hidden group">
+                <div className="p-5 sm:p-6 rounded-3xl border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl shadow-2xl relative overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                   <div className="flex items-center justify-between mb-2">
@@ -967,17 +967,17 @@ export default function Home() {
                       Producer Actions
                     </h2>
                   </div>
-                  <p className="text-sm text-neutral-400 mb-8 leading-relaxed">
+                  <p className="text-sm text-neutral-400 mb-5 leading-relaxed">
                     Connect your IoT sensors and execute verified sustainability
                     actions to mint credits on the immutable ledger.
                   </p>
-                  <div className="space-y-6 relative z-10">
+                  <div className="space-y-4 relative z-10">
                     
                     {/* Step 01 & Inputs Combined */}
                     <div className="relative overflow-hidden p-1 rounded-2xl bg-gradient-to-b from-white/5 to-transparent border border-white/10 shadow-lg group hover:border-emerald-500/20 transition-all duration-500">
-                      <div className="bg-neutral-900/80 rounded-xl p-5 md:p-6 backdrop-blur-md relative z-10 space-y-6">
+                      <div className="bg-neutral-900/80 rounded-xl p-4 md:p-5 backdrop-blur-md relative z-10 space-y-4">
                         
-                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-white/5 pb-5">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-white/5 pb-4">
                           <div>
                             <div className="flex items-center gap-2 mb-2">
                               <span className="flex items-center gap-2 text-xs text-neutral-400 uppercase tracking-widest font-mono font-semibold">
@@ -1013,7 +1013,7 @@ export default function Home() {
                         </div>
 
                         {/* Input Fields */}
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           <div className="flex flex-col">
                             <label className="text-[10px] uppercase tracking-wider font-mono text-neutral-500 mb-1.5 ml-1">Project Name</label>
                             <input 
@@ -1021,10 +1021,10 @@ export default function Home() {
                               placeholder="e.g. Amazon Reforestation"
                               value={mintProjectName}
                               onChange={(e) => setMintProjectName(e.target.value)}
-                              className="bg-black/40 border border-white/5 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 hover:border-white/10"
+                              className="bg-black/40 border border-white/5 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 hover:border-white/10"
                             />
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                             <div className="flex flex-col md:col-span-5">
                               <label className="text-[10px] uppercase tracking-wider font-mono text-neutral-500 mb-1.5 ml-1">Registry standard</label>
                               <input 
@@ -1032,7 +1032,7 @@ export default function Home() {
                                 placeholder="e.g. Verra"
                                 value={mintRegistryName}
                                 onChange={(e) => setMintRegistryName(e.target.value)}
-                                className="bg-black/40 border border-white/5 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 w-full hover:border-white/10"
+                                className="bg-black/40 border border-white/5 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 w-full hover:border-white/10"
                               />
                             </div>
                             <div className="flex flex-col md:col-span-4">
@@ -1042,7 +1042,7 @@ export default function Home() {
                                 placeholder="e.g. VCS-001"
                                 value={mintProjectId}
                                 onChange={(e) => setMintProjectId(e.target.value)}
-                                className="bg-black/40 border border-white/5 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 w-full hover:border-white/10"
+                                className="bg-black/40 border border-white/5 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 w-full hover:border-white/10"
                               />
                             </div>
                             <div className="flex flex-col md:col-span-3">
@@ -1053,7 +1053,7 @@ export default function Home() {
                                 value={mintAmount}
                                 min="1"
                                 onChange={(e) => setMintAmount(e.target.value)}
-                                className="bg-black/40 border border-white/5 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 w-full hover:border-white/10"
+                                className="bg-black/40 border border-white/5 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 w-full hover:border-white/10"
                               />
                             </div>
                           </div>
@@ -1075,7 +1075,7 @@ export default function Home() {
                         mint();
                       }}
                       onMouseEnter={() => uiSounds.hover()}
-                      className={`group/btn relative overflow-hidden rounded-2xl p-6 text-left border transition-all duration-700 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-5 ${!hasRegistered ? "bg-neutral-900/20 border-white/5 grayscale pointer-events-none" : isMinting ? "bg-emerald-950/40 border-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.15)]" : "bg-gradient-to-br from-neutral-900/60 to-black hover:from-emerald-950/30 hover:to-neutral-900 border-emerald-500/20 hover:border-emerald-400"}`}
+                      className={`group/btn relative overflow-hidden rounded-2xl p-4 md:p-5 text-left border transition-all duration-700 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-5 ${!hasRegistered ? "bg-neutral-900/20 border-white/5 grayscale pointer-events-none" : isMinting ? "bg-emerald-950/40 border-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.15)]" : "bg-gradient-to-br from-neutral-900/60 to-black hover:from-emerald-950/30 hover:to-neutral-900 border-emerald-500/20 hover:border-emerald-400"}`}
                     >
                       <div className={`absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.05] transition-opacity duration-300 ${!isMinting && hasRegistered && "mix-blend-overlay group-hover/btn:opacity-[0.15]"}`} />
                       
