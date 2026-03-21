@@ -32,7 +32,7 @@ const contractABI = [
 
 const contractAddress =
   process.env.NEXT_PUBLIC_METRIC_GREEN_CONTRACT_ADDRESS ||
-  "0x41989308350c849B7737441deda44313aafd9499";
+  "0x80bD9Bec39544cc4fa9F00F04872a6734ee23cc6";
 const requiredChainId = parseChainId(
   process.env.NEXT_PUBLIC_METRIC_GREEN_CHAIN_ID,
   11155111n,
@@ -376,109 +376,31 @@ export default function Home() {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const contract = await getContract(provider, { withSigner: true });
 
-        let targetAmount = 0;
-        let sensorId = "Sensor_ID_042";
+        let targetAmount = parseInt(mintAmount, 10);
 
-        // 1. Simulated IoT Sensor API Configuration
-        const DEMO_IOT_API_KEY = "mg_sk_iot_9f83b2a1c7";
-        console.log(
-          `[IoT Gateway] Authenticating with IoT API Key: ${DEMO_IOT_API_KEY} ...`,
-        );
-
-        // 2. Simulated Satellite dMRV Provider Configuration
-        const DEMO_SAT_API_KEY = "esa_sat_sk_8820bdq9";
-        console.log(
-          `[Sat Oracle] Authenticating with Satellite API Key: ${DEMO_SAT_API_KEY} ...`,
-        );
-
-        // Simulating a real network request to an IoT hardware endpoint
-        const fetchSimulatedIoTData = () => {
-          return new Promise((resolve) => {
-            setTimeout(() => {
-              resolve({
-                ok: true,
-                json: async () => ({
-                  sensorId: `AERO_NODE_${Math.floor(Math.random() * 900) + 100}`,
-                  co2Reduced: Math.floor(Math.random() * 150) + 50,
-                  timestamp: new Date().toISOString(),
-                  gps: "34.0522° N, -118.2437° W",
-                  hardwareStatus: "online",
-                  verificationHash: `0x${Math.random().toString(16).substring(2, 10)}`,
-                }),
-              });
-            }, 800);
-          });
-        };
-
-        // Simulating a network request to an orbital Satellite (e.g. Sentinel-5P) provider API
-        const fetchSimulatedSatelliteData = (gpsCoords) => {
-          return new Promise((resolve) => {
-            setTimeout(() => {
-              resolve({
-                ok: true,
-                json: async () => ({
-                  provider: "Sentinel-5P_dMRV",
-                  gps_target: gpsCoords,
-                  spatial_co2_delta: Math.floor(Math.random() * 150) + 40, // Independent macro measurement
-                  cloud_cover: "12%",
-                  orbital_timestamp: new Date().toISOString(),
-                  tamper_proof_hash: `0x${Math.random().toString(16).substring(2, 12)}`,
-                }),
-              });
-            }, 1500);
-          });
-        };
+        let zkProof = "0x0000";
 
         try {
-          console.log(
-            "[Sensor Fusion] Fetching primary IoT ground telemetry...",
-          );
-          const iotResponse = await fetchSimulatedIoTData();
-          let iotData = null;
+          const res = await fetch("/api/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              projectId: mintProjectId,
+              claimedAmount: mintAmount,
+            }),
+          });
+          const result = await res.json();
 
-          if (iotResponse.ok) {
-            iotData = await iotResponse.json();
-            targetAmount = iotData.co2Reduced;
-            sensorId = iotData.sensorId;
-            console.log(
-              "[Sensor Fusion] Successfully retrieved ground telemetry:",
-              iotData,
-            );
+          if (!res.ok || !result.verified) {
+            throw new Error(result.error || "Verification Failed");
           }
-
-          if (iotData) {
-            console.log(
-              `[Sensor Fusion] Engaging Satellite dMRV for cross-verification at coordinates: ${iotData.gps}...`,
-            );
-            const satResponse = await fetchSimulatedSatelliteData(iotData.gps);
-            if (satResponse.ok) {
-              const satData = await satResponse.json();
-              console.log(
-                "[Sensor Fusion] Successfully retrieved unforgeable orbital data:",
-                satData,
-              );
-
-              // ZK-Proof logic: Calculate the delta between ground sensors and space observation
-              const deviation = Math.abs(
-                iotData.co2Reduced - satData.spatial_co2_delta,
-              );
-              if (deviation > 50) {
-                console.warn(
-                  `[Sensor Fusion Alert] Massive discrepancy detected! Factory claims ${iotData.co2Reduced} but Space claims ${satData.spatial_co2_delta}. Flagging for structural audit!`,
-                );
-              } else {
-                console.log(
-                  `[Sensor Fusion] ZK-SNARK mathematically verified. Deviation (${deviation}) is within acceptable threshold. Oracles matching!`,
-                );
-              }
-            }
-          }
+          zkProof = result.zkProof;
         } catch (err) {
-          console.warn(
-            "[Sensor Fusion] API failure, falling back safely.",
-            err,
-          );
-          targetAmount = Math.floor(Math.random() * 100) + 20;
+          console.error("[Sensor Fusion Error]", err);
+          setIsMinting(false);
+          uiSounds.error();
+          toast.error(err.message, { duration: 6000 });
+          return;
         }
 
         // Attempt on-chain interaction
@@ -530,7 +452,7 @@ export default function Home() {
                   ? mintAmount.toString()
                   : targetAmount.toString(),
                 retired: false,
-                zkProof: `0x${Math.random().toString(16).substring(2, 6)}...${Math.random().toString(16).substring(2, 6)}`,
+                zkProof: zkProof,
               },
             ]);
           } else {
@@ -653,8 +575,8 @@ export default function Home() {
     const updateMousePosition = (e) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
-    window.addEventListener('mousemove', updateMousePosition);
-    return () => window.removeEventListener('mousemove', updateMousePosition);
+    window.addEventListener("mousemove", updateMousePosition);
+    return () => window.removeEventListener("mousemove", updateMousePosition);
   }, []);
 
   if (!mounted) return null;
@@ -662,34 +584,42 @@ export default function Home() {
   return (
     <main className="min-h-screen relative bg-[#030712] text-neutral-200 font-sans selection:bg-emerald-500/30 overflow-hidden">
       {/* Custom Mouse Spotlight */}
-        <div 
-          className="pointer-events-none fixed inset-0 z-[1] transition-opacity duration-300"
-          style={{
-            background: `radial-gradient(800px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(16,185,129,0.06), transparent 40%)`
-          }}
-        />
-        
-        {/* Floating Cyber Particles */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ y: Math.random() * 1000, x: Math.random() * 1500, opacity: 0 }}
-              animate={{ 
-                y: [Math.random() * 1000, Math.random() * 1000], 
-                x: [Math.random() * 1500, Math.random() * 1500],
-                opacity: [0.1, Math.random() * 0.5 + 0.2, 0.1]
-              }}
-              transition={{ duration: Math.random() * 20 + 20, repeat: Infinity, ease: "linear" }}
-              className="absolute w-1 h-1 bg-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.8)]"
-            />
-          ))}
-        </div>
+      <div
+        className="pointer-events-none fixed inset-0 z-[1] transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(800px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(16,185,129,0.06), transparent 40%)`,
+        }}
+      />
 
-        {/* Animated Grid Overlay */}
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] z-0 pointer-events-none" />
+      {/* Floating Cyber Particles */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{
+              y: Math.random() * 1000,
+              x: Math.random() * 1500,
+              opacity: 0,
+            }}
+            animate={{
+              y: [Math.random() * 1000, Math.random() * 1000],
+              x: [Math.random() * 1500, Math.random() * 1500],
+              opacity: [0.1, Math.random() * 0.5 + 0.2, 0.1],
+            }}
+            transition={{
+              duration: Math.random() * 20 + 20,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            className="absolute w-1 h-1 bg-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.8)]"
+          />
+        ))}
+      </div>
 
-        {/* Background Glows - SaaS Multi-Color Palette */}
+      {/* Animated Grid Overlay */}
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] z-0 pointer-events-none" />
+
+      {/* Background Glows - SaaS Multi-Color Palette */}
       <motion.div
         animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
@@ -1010,88 +940,135 @@ export default function Home() {
                     actions to mint credits on the immutable ledger.
                   </p>
                   <div className="space-y-4 relative z-10">
-                    
                     {/* Step 01 & Inputs Combined */}
                     <div className="relative overflow-hidden p-1 rounded-2xl bg-gradient-to-b from-white/5 to-transparent border border-white/10 shadow-lg group hover:border-emerald-500/20 transition-all duration-500">
                       <div className="bg-neutral-900/80 rounded-xl p-4 md:p-5 backdrop-blur-md relative z-10 space-y-4">
-                        
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-white/5 pb-4">
                           <div>
                             <div className="flex items-center gap-2 mb-2">
                               <span className="flex items-center gap-2 text-xs text-neutral-400 uppercase tracking-widest font-mono font-semibold">
-                                <Lock className={`w-3.5 h-3.5 ${hasRegistered ? "text-emerald-400" : ""}`} />
+                                <Lock
+                                  className={`w-3.5 h-3.5 ${hasRegistered ? "text-emerald-400" : ""}`}
+                                />
                                 Step 01
                               </span>
-                              {isRegistering && <Activity className="w-4 h-4 text-emerald-500 animate-spin" />}
-                              {hasRegistered && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                              {isRegistering && (
+                                <Activity className="w-4 h-4 text-emerald-500 animate-spin" />
+                              )}
+                              {hasRegistered && (
+                                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                              )}
                             </div>
-                            <h3 className={`text-xl font-bold transition-colors duration-300 ${hasRegistered ? "text-emerald-400" : "text-white"}`}>
-                              {isRegistering ? "Verifying Certificate..." : hasRegistered ? "Certificate Verified" : "Register Credentials"}
+                            <h3
+                              className={`text-xl font-bold transition-colors duration-300 ${hasRegistered ? "text-emerald-400" : "text-white"}`}
+                            >
+                              {isRegistering
+                                ? "Verifying Certificate..."
+                                : hasRegistered
+                                  ? "Certificate Verified"
+                                  : "Register Credentials"}
                             </h3>
                             <p className="text-sm text-neutral-500 mt-1 font-mono flex items-center gap-2">
-                              Status: <span className={`font-bold px-2 py-0.5 rounded-md transition-all duration-300 ${hasRegistered ? "text-neutral-900 bg-emerald-500" : "text-emerald-500 bg-emerald-500/10"}`}>{hasRegistered ? "Live on-chain" : "Unregistered"}</span>
+                              Status:{" "}
+                              <span
+                                className={`font-bold px-2 py-0.5 rounded-md transition-all duration-300 ${hasRegistered ? "text-neutral-900 bg-emerald-500" : "text-emerald-500 bg-emerald-500/10"}`}
+                              >
+                                {hasRegistered
+                                  ? "Live on-chain"
+                                  : "Unregistered"}
+                              </span>
                             </p>
                           </div>
-                          
+
                           <motion.button
-                            whileHover={!isRegistering && !hasRegistered ? { scale: 1.05 } : {}}
-                            whileTap={!isRegistering && !hasRegistered ? { scale: 0.95 } : {}}
+                            whileHover={
+                              !isRegistering && !hasRegistered
+                                ? { scale: 1.05 }
+                                : {}
+                            }
+                            whileTap={
+                              !isRegistering && !hasRegistered
+                                ? { scale: 0.95 }
+                                : {}
+                            }
                             onClick={() => {
                               if (!hasRegistered) {
                                 uiSounds.tap();
                                 registerCertificate();
                               }
                             }}
-                            onMouseEnter={() => !isRegistering && !hasRegistered && uiSounds.hover()}
+                            onMouseEnter={() =>
+                              !isRegistering &&
+                              !hasRegistered &&
+                              uiSounds.hover()
+                            }
                             disabled={isRegistering || hasRegistered}
                             className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md mt-1 md:mt-0 whitespace-nowrap ${hasRegistered ? "bg-emerald-900/40 text-emerald-500/50 cursor-not-allowed border border-emerald-500/20" : "bg-white text-black hover:bg-emerald-400"}`}
                           >
-                            {isRegistering ? "Verifying..." : hasRegistered ? "Registered" : "Register Project"}
+                            {isRegistering
+                              ? "Verifying..."
+                              : hasRegistered
+                                ? "Registered"
+                                : "Register Project"}
                           </motion.button>
                         </div>
 
                         {/* Input Fields */}
                         <div className="space-y-3">
                           <div className="flex flex-col">
-                            <label className="text-[10px] uppercase tracking-wider font-mono text-neutral-500 mb-1.5 ml-1">Project Name</label>
-                            <input 
-                              type="text" 
+                            <label className="text-[10px] uppercase tracking-wider font-mono text-neutral-500 mb-1.5 ml-1">
+                              Project Name
+                            </label>
+                            <input
+                              type="text"
                               placeholder="e.g. Amazon Reforestation"
                               value={mintProjectName}
-                              onChange={(e) => setMintProjectName(e.target.value)}
+                              onChange={(e) =>
+                                setMintProjectName(e.target.value)
+                              }
                               className="bg-black/40 border border-white/5 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 hover:border-white/10"
                             />
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                             <div className="flex flex-col md:col-span-5">
-                              <label className="text-[10px] uppercase tracking-wider font-mono text-neutral-500 mb-1.5 ml-1">Registry standard</label>
-                              <input 
-                                type="text" 
+                              <label className="text-[10px] uppercase tracking-wider font-mono text-neutral-500 mb-1.5 ml-1">
+                                Registry standard
+                              </label>
+                              <input
+                                type="text"
                                 placeholder="e.g. Verra"
                                 value={mintRegistryName}
-                                onChange={(e) => setMintRegistryName(e.target.value)}
+                                onChange={(e) =>
+                                  setMintRegistryName(e.target.value)
+                                }
                                 className="bg-black/40 border border-white/5 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 w-full hover:border-white/10"
                               />
                             </div>
                             <div className="flex flex-col md:col-span-4">
-                              <label className="text-[10px] uppercase tracking-wider font-mono text-neutral-500 mb-1.5 ml-1">Project ID</label>
-                              <input 
-                                type="text" 
-                                placeholder="e.g. VCS-001"
+                              <label className="text-[10px] uppercase tracking-wider font-mono text-neutral-500 mb-1.5 ml-1">
+                                Project ID
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. VCS001"
                                 value={mintProjectId}
-                                onChange={(e) => setMintProjectId(e.target.value)}
+                                onChange={(e) =>
+                                  setMintProjectId(e.target.value)
+                                }
                                 className="bg-black/40 border border-white/5 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 w-full hover:border-white/10"
                               />
                             </div>
                             <div className="flex flex-col md:col-span-3">
-                              <label className="text-[10px] uppercase tracking-wider font-mono text-neutral-500 mb-1.5 ml-1">Credits Amt</label>
-                              <input 
-                                type="number" 
+                              <label className="text-[10px] uppercase tracking-wider font-mono text-neutral-500 mb-1.5 ml-1">
+                                Credits Amt
+                              </label>
+                              <input
+                                type="number"
                                 placeholder="0"
                                 value={mintAmount}
                                 min="1"
                                 onChange={(e) => setMintAmount(e.target.value)}
-                                className="bg-black/40 border border-white/5 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 w-full hover:border-white/10"
+                                className="bg-black/40 border border-white/5 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/40 focus:bg-emerald-950/10 transition-all placeholder:text-neutral-700 w-full hover:border-black/10"
                               />
                             </div>
                           </div>
@@ -1100,9 +1077,13 @@ export default function Home() {
                     </div>
 
                     {/* Step 02 Minting Action */}
-                    <motion.div 
-                      whileHover={hasRegistered && !isMinting ? { scale: 1.01 } : {}}
-                      whileTap={hasRegistered && !isMinting ? { scale: 0.99 } : {}}
+                    <motion.div
+                      whileHover={
+                        hasRegistered && !isMinting ? { scale: 1.01 } : {}
+                      }
+                      whileTap={
+                        hasRegistered && !isMinting ? { scale: 0.99 } : {}
+                      }
                       onClick={() => {
                         if (!hasRegistered) {
                           uiSounds.error();
@@ -1115,8 +1096,10 @@ export default function Home() {
                       onMouseEnter={() => uiSounds.hover()}
                       className={`group/btn relative overflow-hidden rounded-2xl p-4 md:p-5 text-left border transition-all duration-700 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-5 ${!hasRegistered ? "bg-neutral-900/20 border-white/5 grayscale pointer-events-none" : isMinting ? "bg-emerald-950/40 border-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.15)]" : "bg-gradient-to-br from-neutral-900/60 to-black hover:from-emerald-950/30 hover:to-neutral-900 border-emerald-500/20 hover:border-emerald-400"}`}
                     >
-                      <div className={`absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.05] transition-opacity duration-300 ${!isMinting && hasRegistered && "mix-blend-overlay group-hover/btn:opacity-[0.15]"}`} />
-                      
+                      <div
+                        className={`absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.05] transition-opacity duration-300 ${!isMinting && hasRegistered && "mix-blend-overlay group-hover/btn:opacity-[0.15]"}`}
+                      />
+
                       {/* Background slide effect for whole card */}
                       {!isMinting && hasRegistered && (
                         <span className="absolute inset-0 bg-emerald-500/5 w-0 transition-all duration-500 ease-out group-hover/btn:w-full"></span>
@@ -1124,28 +1107,56 @@ export default function Home() {
 
                       <div className="relative z-10 flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className={`flex items-center gap-2 text-xs uppercase tracking-widest font-mono font-semibold transition-colors duration-500 ${isMinting ? "text-emerald-300" : hasRegistered ? "text-emerald-400" : "text-neutral-600"}`}>
+                          <span
+                            className={`flex items-center gap-2 text-xs uppercase tracking-widest font-mono font-semibold transition-colors duration-500 ${isMinting ? "text-emerald-300" : hasRegistered ? "text-emerald-400" : "text-neutral-600"}`}
+                          >
                             <ShieldCheck className="w-4 h-4" /> Step 02
                           </span>
                         </div>
-                        <h3 className={`text-xl font-bold flex items-center gap-2 transition-colors duration-500 ${isMinting ? "text-emerald-400 animate-pulse" : hasRegistered ? "text-white" : "text-neutral-600"}`}>
-                          {isMinting ? "Generating ZK-Proof..." : "Verify & Mint Credentials"}
+                        <h3
+                          className={`text-xl font-bold flex items-center gap-2 transition-colors duration-500 ${isMinting ? "text-emerald-400 animate-pulse" : hasRegistered ? "text-white" : "text-neutral-600"}`}
+                        >
+                          {isMinting
+                            ? "Generating ZK-Proof..."
+                            : "Verify & Mint Credentials"}
                         </h3>
-                        <p className={`text-sm mt-1 font-mono transition-colors duration-500 ${isMinting ? "text-emerald-200/60" : hasRegistered ? "text-emerald-100/60" : "text-neutral-700"}`}>
-                          Target ID: <span className={`font-bold px-2 py-0.5 rounded-md border transition-colors duration-500 ${hasRegistered ? "text-white bg-black/40 border-white/10" : "text-neutral-600 bg-neutral-900/50 border-transparent"}`}>{mintProjectId || "VCS-001"}</span>
+                        <p
+                          className={`text-sm mt-1 font-mono transition-colors duration-500 ${isMinting ? "text-emerald-200/60" : hasRegistered ? "text-emerald-100/60" : "text-neutral-700"}`}
+                        >
+                          Target ID:{" "}
+                          <span
+                            className={`font-bold px-2 py-0.5 rounded-md border transition-colors duration-500 ${hasRegistered ? "text-white bg-black/40 border-white/10" : "text-neutral-600 bg-neutral-900/50 border-transparent"}`}
+                          >
+                            {mintProjectId || "VCS-001"}
+                          </span>
                         </p>
                       </div>
 
-                      <div className={`relative z-10 px-6 py-3.5 rounded-xl font-bold flex items-center justify-center min-w-[180px] overflow-hidden transition-all duration-500 ${isMinting ? "bg-emerald-900/80 text-emerald-400 border border-emerald-500/50" : !hasRegistered ? "bg-neutral-800 text-neutral-600" : "bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.2)] group-hover/btn:shadow-[0_0_40px_rgba(16,185,129,0.6)]"}`}>
+                      <div
+                        className={`relative z-10 px-6 py-3.5 rounded-xl font-bold flex items-center justify-center min-w-[180px] overflow-hidden transition-all duration-500 ${isMinting ? "bg-emerald-900/80 text-emerald-400 border border-emerald-500/50" : !hasRegistered ? "bg-neutral-800 text-neutral-600" : "bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.2)] group-hover/btn:shadow-[0_0_40px_rgba(16,185,129,0.6)]"}`}
+                      >
                         <span className="relative z-10 flex items-center">
                           {isMinting ? (
-                            <><Activity className="w-5 h-5 mr-2 animate-spin" /> Processing</>
+                            <>
+                              <Activity className="w-5 h-5 mr-2 animate-spin" />{" "}
+                              Processing
+                            </>
                           ) : (
                             <>
-                              Mint Credit 
+                              Mint Credit
                               <motion.div
-                                initial={{ x: 0, opacity: 0, width: 0, marginLeft: 0 }}
-                                animate={{ x: 0, opacity: 1, width: 'auto', marginLeft: 8 }}
+                                initial={{
+                                  x: 0,
+                                  opacity: 0,
+                                  width: 0,
+                                  marginLeft: 0,
+                                }}
+                                animate={{
+                                  x: 0,
+                                  opacity: 1,
+                                  width: "auto",
+                                  marginLeft: 8,
+                                }}
                                 transition={{ duration: 0.3 }}
                                 className="overflow-hidden hidden group-hover/btn:flex items-center"
                               >
@@ -1376,11 +1387,15 @@ export default function Home() {
       `,
         }}
       />
-    
-      <style dangerouslySetInnerHTML={{__html: `
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
         @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 10px rgba(16,185,129,0.3)); } 50% { filter: drop-shadow(0 0 25px rgba(16,185,129,0.8)); } }
-        `}} />
+        `,
+        }}
+      />
     </main>
   );
 }
