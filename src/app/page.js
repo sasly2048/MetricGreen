@@ -32,7 +32,7 @@ const contractABI = [
 
 const contractAddress =
   process.env.NEXT_PUBLIC_METRIC_GREEN_CONTRACT_ADDRESS ||
-  "0x89F82b8e1c65eC9b8F319eCc4d478A52047F1718";
+  "0x29A69F7988C31375DbC3AF946844daDA23fdeBc1";
 const requiredChainId = parseChainId(
   process.env.NEXT_PUBLIC_METRIC_GREEN_CHAIN_ID,
   11155111n,
