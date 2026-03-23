@@ -250,10 +250,35 @@ export default function Home() {
         }
       }
     } else {
-      toast.error("Web3 Provider missing. Deploying frictionless fallback...", {
-        description:
-          "In production, this would trigger a Privy social login or Web3Auth modal.",
-      });
+      toast.success(
+        "Web3 Provider missing. Deploying frictionless fallback...",
+        {
+          description:
+            "Switched to Demo Mode with simulated account credentials.",
+        },
+      );
+      setAccount("0xDeMo...bEeF");
+      setEnsName("demo.eth");
+      setCredits([
+        {
+          id: 0,
+          name: "WindFarm Alpha",
+          registry: "Verra",
+          projectId: "VCS-001",
+          amount: "500",
+          retired: false,
+          zkProof: "0x8f7b...3c1a",
+        },
+        {
+          id: 1,
+          name: "Solar Grid 9",
+          registry: "Gold Standard",
+          projectId: "GS-4321",
+          amount: "250",
+          retired: true,
+          zkProof: "0x4a2e...9d8f",
+        },
+      ]);
     }
   }
 

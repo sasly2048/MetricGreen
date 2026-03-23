@@ -3,9 +3,18 @@
 // High-end synthetic UI sounds using native Web Audio API
 // No need for external .wav or .mp3 files!
 
+let globalAudioCtx = null;
+
 function playTone(frequency, type, duration, vol) {
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!globalAudioCtx) {
+      globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (globalAudioCtx.state === "suspended") {
+      globalAudioCtx.resume();
+    }
+    const audioCtx = globalAudioCtx;
+
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
 
