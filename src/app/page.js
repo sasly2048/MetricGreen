@@ -113,7 +113,6 @@ export default function Home() {
   const [mintProjectId, setMintProjectId] = useState("");
   const [mintAmount, setMintAmount] = useState("");
   const [auditLogs, setAuditLogs] = useState([]);
-  const [auditLogs, setAuditLogs] = useState([]);
 
   async function getContract(provider, { withSigner = false } = {}) {
     if (!contractAddress) {
