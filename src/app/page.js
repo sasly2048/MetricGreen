@@ -219,30 +219,47 @@ export default function Home() {
       try {
         setStatus({ code: "", message: "" });
 
-        toast.promise(
-          async () => {
+        const connectTask = new Promise(async (resolve, reject) => {
+          try {
+            const timeoutId = setTimeout(() => {
+              reject(
+                new Error(
+                  "Wallet request timed out. Please check if your wallet popup is hidden or blocked.",
+                ),
+              );
+            }, 20000);
+
             const provider = new ethers.BrowserProvider(window.ethereum);
             const accounts = await provider.send("eth_requestAccounts", []);
+
+            clearTimeout(timeoutId);
+
+            if (!accounts || accounts.length === 0)
+              throw new Error("No accounts found");
+
             setAccount(accounts[0]);
 
-            // Simulate Advanced Resolvers (ENS, Lens, etc)
             setTimeout(() => {
               setEnsName("raghav.eth");
               uiSounds.decrypt();
             }, 800);
 
             await loadCredits(provider);
-            return accounts[0];
+            resolve(accounts[0]);
+          } catch (err) {
+            reject(err);
+          }
+        });
+
+        toast.promise(connectTask, {
+          loading: "Creating secure session & resolving identity...",
+          success: (data) => {
+            uiSounds.success();
+            return `Authenticated successfully as ${data.slice(0, 6)}...${data.slice(-4)}`;
           },
-          {
-            loading: "Creating secure session & resolving identity...",
-            success: (data) => {
-              uiSounds.success();
-              return `Authenticated successfully as ${data.slice(0, 6)}...${data.slice(-4)}`;
-            },
-            error: "Authentication failed",
-          },
-        );
+          error: (err) =>
+            `Authentication failed: ${err.message || "Unknown error"}`,
+        });
       } catch (error) {
         if (error?.code === 4001 || error?.code === "ACTION_REJECTED") {
           toast.error("User closed the connection portal.");
