@@ -1,14 +1,22 @@
 {
-  "name": "metric-green-demo",
-  "version": "0.1.0",
+  "name": "metricgreen",
+  "version": "1.0.0",
   "private": true,
+  "description": "MetricGreen — Programmable carbon credit infrastructure.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia"
   },
   "dependencies": {
+    "@nomicfoundation/edr-win32-arm64-msvc": "^0.3.3",
+    "@nomicfoundation/solidity-analyzer": "^0.1.2",
+    "@nomicfoundation/solidity-analyzer-win32-arm64-msvc": "^0.1.1",
+    "@openzeppelin/contracts": "^5.0.2",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "framer-motion": "^12.38.0",
@@ -17,13 +25,14 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.5.0",
-    "use-sound": "^5.0.0"
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
     "@tailwindcss/postcss": "^4",
     "babel-plugin-react-compiler": "1.0.0",
-    "chai": "^6.2.2",
+    "chai": "^4.5.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.7",
     "ethers": "^6.16.0",
