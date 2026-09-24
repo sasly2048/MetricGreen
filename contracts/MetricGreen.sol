@@ -74,6 +74,10 @@ contract MetricGreen is ERC721URIStorage, Ownable, ReentrancyGuard {
     mapping(address => bool) public verifiers;
     mapping(uint256 => bool) public challenged;   // creditId => challenged?
     mapping(uint256 => uint256) public attestationCount;
+    /// @dev Per-credit, per-verifier attestation flag so a single verifier
+    /// cannot inflate attestationCount (which gates the retire() shortcut) by
+    /// calling attest() repeatedly. Distinct verifiers are now required.
+    mapping(uint256 => mapping(address => bool)) public hasAttested;
 
     // ---------------------------------------------------------------------
     // Events
@@ -81,6 +85,7 @@ contract MetricGreen is ERC721URIStorage, Ownable, ReentrancyGuard {
 
     event ProducerRegistered(address indexed producer, bytes32 certId, uint256 bond);
     event ProducerRevoked(address indexed producer);
+    event BondWithdrawn(address indexed producer, uint256 amount);
     event VerifierAdded(address indexed verifier);
     event CreditMinted(
         uint256 indexed id,
@@ -133,6 +138,28 @@ contract MetricGreen is ERC721URIStorage, Ownable, ReentrancyGuard {
         p.active = false;
         p.reputation = 0;
         emit ProducerRevoked(producer);
+    }
+
+    /**
+     * @notice Reclaim a staked bond once the producer is no longer active
+     *         (after {revokeProducer}). Without this, every wei staked in
+     *         {registerProducer}/{topUpBond} was permanently locked -- there
+     *         was no path for staked ETH to leave the contract.
+     * @dev Checks-effects-interactions + nonReentrant: the bond is zeroed
+     *      before the external call so a reentrant withdraw cannot double-spend.
+     */
+    function withdrawBond() external nonReentrant {
+        Producer storage p = producers[msg.sender];
+        require(p.wallet == msg.sender, "Not a producer");
+        require(!p.active, "Still active");
+        uint256 amount = p.bond;
+        require(amount > 0, "No bond");
+
+        p.bond = 0;
+        emit BondWithdrawn(msg.sender, amount);
+
+        (bool ok, ) = payable(msg.sender).call{value: amount}("");
+        require(ok, "Transfer failed");
     }
 
     // ---------------------------------------------------------------------
@@ -219,7 +246,9 @@ contract MetricGreen is ERC721URIStorage, Ownable, ReentrancyGuard {
         require(c.id != 0, "Unknown credit");
         require(block.timestamp <= c.challengeEndsAt, "Challenge window closed");
         require(!challenged[creditId], "Already challenged");
+        require(!hasAttested[creditId][msg.sender], "Already attested");
 
+        hasAttested[creditId][msg.sender] = true;
         attestationCount[creditId] += 1;
         emit CreditAttested(creditId, msg.sender);
     }

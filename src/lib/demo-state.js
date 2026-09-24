@@ -182,6 +182,6 @@ export function useHoldings() {
     retired: state.retiredCreditIds,
     hold: (id) => dispatch({ type: "ADD_HELD_CREDIT", payload: id }),
     retire: (id) => dispatch({ type: "RETIRE_CREDIT", payload: id }),
-    unretyre: (id) => dispatch({ type: "UNRETIRE_CREDIT", payload: id }),
+    unretire: (id) => dispatch({ type: "UNRETIRE_CREDIT", payload: id }),
   };
 }

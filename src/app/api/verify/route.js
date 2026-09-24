@@ -44,7 +44,9 @@ export async function POST(request) {
   }
 
   try {
-    const IOT_API_KEY = process.env.IOT_HARDWARE_API_KEY || "sk_live_iot_default";
+    // Non-secret placeholder for the demo. The `sk_live_` prefix read as a
+    // real key and tripped secret scanners; it is only mixed into a sha256.
+    const IOT_API_KEY = process.env.IOT_HARDWARE_API_KEY || "demo-iot-placeholder-key";
     const device = registeredDevices[projectId] || {
       lat: 0,
       lon: 0,
